@@ -1,0 +1,23 @@
+# Netlify config — раздел headers на статику.
+# Положите этот файл рядом с index.html и перетащите оба в Netlify Drop.
+
+# HTML — короткий кеш, чтобы правки сайта подхватывались быстро
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Картинки — день кеша
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# Шрифты — год кеша (immutable)
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

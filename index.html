@@ -7,7 +7,8 @@
 <meta name="description" content="ЖК «Крылья» в Твери на ул. Планерная: умные планировки, панорамное остекление, эркеры, автономное отопление, монолит-кирпич, паркинг. Квартиры от 4,3 млн ₽. Семейная ипотека от 3,5%, Trade-In, рассрочка.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=60" fetchpriority="high">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#EDEBE7;
@@ -111,15 +112,16 @@ header.scrolled{background:rgba(237,235,231,.92);backdrop-filter:blur(14px);padd
 
 /* ---------- hero ---------- */
 .hero{min-height:100vh;display:flex;align-items:flex-end;padding-bottom:54px;position:relative;color:#fff;overflow:hidden}
-.hero-bg{position:absolute;inset:0;z-index:-2;background:linear-gradient(120deg,#33444f,#1c2832);background-size:cover;background-position:center}
-.hero-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,28,36,.45) 0%,rgba(20,28,36,.15) 35%,rgba(20,28,36,.78) 100%)}
+.hero-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;background:linear-gradient(120deg,#33444f,#1c2832)}
+.hero-bg{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(20,28,36,.45) 0%,rgba(20,28,36,.15) 35%,rgba(20,28,36,.78) 100%)}
 .hero .wrap{width:100%;position:relative;z-index:2}
 .hero-top{position:absolute;top:118px;left:0;right:0}
 .hero-flag{display:inline-flex;align-items:center;gap:9px;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(227,201,164,.18);border:1px solid rgba(227,201,164,.5);color:var(--tan);padding:9px 18px;border-radius:40px;backdrop-filter:blur(4px)}
-.hero-flag .dot{width:8px;height:8px;border-radius:50%;background:var(--tan);box-shadow:0 0 0 0 rgba(227,201,164,.7);animation:pulse 2.2s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(227,201,164,.6)}70%{box-shadow:0 0 0 12px rgba(227,201,164,0)}100%{box-shadow:0 0 0 0 rgba(227,201,164,0)}}
+.hero-flag .dot{width:8px;height:8px;border-radius:50%;background:var(--tan);position:relative}
+.hero-flag .dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(227,201,164,.55);animation:pulse 2.2s infinite;will-change:transform,opacity}
+@keyframes pulse{0%{transform:scale(1);opacity:.7}80%,100%{transform:scale(3.2);opacity:0}}
 .hero h1{font-size:clamp(74px,16vw,210px);font-weight:800;letter-spacing:-.045em;line-height:.9;margin:18px 0 6px}
-.hero-sub{font-size:clamp(18px,2.4vw,26px);font-weight:500;color:rgba(255,255,255,.9);margin-bottom:34px}
+.hero-sub{font-size:clamp(18px,2.4vw,26px);font-weight:400;color:rgba(255,255,255,.9);margin-bottom:34px}
 .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:42px}
 .hero-badges{display:flex;gap:12px;flex-wrap:wrap}
 .scroll-cue{position:absolute;right:32px;bottom:54px;z-index:3;writing-mode:vertical-rl;font-size:12px;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.65);display:flex;align-items:center;gap:14px}
@@ -132,7 +134,7 @@ header.scrolled{background:rgba(237,235,231,.92);backdrop-filter:blur(14px);padd
 .strip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .strip-item{display:flex;flex-direction:column;gap:3px}
 .strip-item b{font-size:clamp(28px,3.5vw,42px);font-weight:800;letter-spacing:-.03em;color:var(--tan)}
-.strip-item span{font-size:14px;color:rgba(255,255,255,.62);font-weight:500}
+.strip-item span{font-size:14px;color:rgba(255,255,255,.62);font-weight:400}
 
 /* ---------- generic section padding ---------- */
 .pad{padding:110px 0}
@@ -244,7 +246,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .g-item:hover img{transform:scale(1.06)}
 .g-item.tall{grid-row:span 2}
 .g-item.wide{grid-column:span 2}
-.g-item::after{content:"+";position:absolute;inset:0;background:rgba(26,26,26,.35);color:#fff;font-size:36px;font-weight:300;display:flex;align-items:center;justify-content:center;opacity:0;transition:.3s}
+.g-item::after{content:"+";position:absolute;inset:0;background:rgba(26,26,26,.35);color:#fff;font-size:36px;font-weight:400;display:flex;align-items:center;justify-content:center;opacity:0;transition:.3s}
 .g-item:hover::after{opacity:1}
 
 /* developer */
@@ -302,7 +304,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 .foot-col h4{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--tan);margin-bottom:18px;font-weight:700}
 .foot-col a,.foot-col p{display:block;color:var(--muted-navy);font-size:15px;margin-bottom:11px;transition:color .25s}
 .foot-col a:hover{color:#fff}
-.foot-bottom{display:flex;justify-content:space-between;gap:20px;padding-top:26px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,.45);line-height:1.6}
+.foot-bottom{display:flex;justify-content:space-between;gap:20px;padding-top:26px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,.65);line-height:1.6}
 .foot-bottom a{text-decoration:underline}
 .disclaimer{max-width:760px}
 
@@ -384,7 +386,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 
 <!-- mobile drawer -->
 <div class="drawer" id="drawer">
-  <button class="drawer-close" id="drawerClose">&times;</button>
+  <button class="drawer-close" id="drawerClose" aria-label="Закрыть меню">&times;</button>
   <a href="#about">О проекте</a>
   <a href="#apartments">Квартиры</a>
   <a href="#purchase">Ипотека</a>
@@ -396,7 +398,8 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 
 <!-- ============ HERO ============ -->
 <section class="hero">
-  <div class="hero-bg" style="background-image:url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1920&q=80')"></div>
+  <img class="hero-bg-img" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=60" alt="" fetchpriority="high" decoding="async">
+  <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-top">
     <div class="wrap">
       <span class="hero-flag"><span class="dot"></span>Старт продаж 2 очереди</span>
@@ -751,7 +754,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 <!-- modal -->
 <div class="modal" id="modal">
   <div class="modal-box">
-    <button class="modal-close" id="modalClose">&times;</button>
+    <button class="modal-close" id="modalClose" aria-label="Закрыть окно">&times;</button>
     <form id="modalForm">
       <h3>Заказать звонок</h3>
       <p class="m-sub">Перезвоним в течение 15 минут и ответим на все вопросы</p>
