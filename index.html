@@ -350,12 +350,14 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
   .g-item.wide{grid-column:span 2}
   .mobile-cta{display:flex}
   body{padding-bottom:74px}
-  /* hero: флаг над заголовком (а не поверх), блок ниже к краю */
-  .hero{flex-direction:column;justify-content:flex-end;align-items:stretch;padding-bottom:58px}
-  .hero-top{position:static;margin:0 0 16px}
-  .hero h1{font-size:clamp(62px,17vw,96px);margin:8px 0 4px}
-  .hero-sub{margin-bottom:24px}
-  .hero-cta{margin-bottom:24px}
+  /* hero: текучая адаптация — контент по центру, шапку не задевает, без пустот */
+  .hero{min-height:100svh;flex-direction:column;justify-content:center;align-items:stretch;padding-top:clamp(104px,26vw,150px);padding-bottom:clamp(30px,7vw,52px)}
+  .hero-top{position:static;margin:0 0 14px}
+  .hero h1{font-size:clamp(56px,16vw,92px);margin:6px 0 6px}
+  .hero-sub{font-size:clamp(16px,4.2vw,20px);margin-bottom:clamp(20px,6vw,30px)}
+  .hero-cta{flex-direction:column;margin-bottom:clamp(20px,6vw,30px)}
+  .hero-cta .btn{width:100%}
+  .hero-badges{gap:10px}
   .scroll-cue{display:none}
   .lead-perks{gap:14px}
   .contact-phone-row{flex-direction:column;align-items:flex-start}
