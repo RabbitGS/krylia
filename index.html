@@ -112,7 +112,7 @@ header.scrolled{background:rgba(237,235,231,.92);backdrop-filter:blur(14px);padd
 .drawer-close{position:absolute;top:26px;right:26px;color:#fff;font-size:34px;line-height:1}
 
 /* ---------- hero ---------- */
-.hero{min-height:100vh;min-height:100svh;display:flex;align-items:flex-end;padding-bottom:54px;position:relative;color:#fff;overflow:hidden;background:var(--navy-deep);isolation:isolate}
+.hero{min-height:100vh;min-height:100svh;min-height:100dvh;display:flex;align-items:flex-end;padding-bottom:54px;position:relative;color:#fff;overflow:hidden;background:var(--navy-deep);isolation:isolate}
 .hero-bg-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:linear-gradient(120deg,#33444f,#1c2832)}
 .hero-bg{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(20,28,36,.45) 0%,rgba(20,28,36,.15) 35%,rgba(20,28,36,.78) 100%)}
 .hero .wrap{width:100%;position:relative;z-index:2}
@@ -310,7 +310,9 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 .disclaimer{max-width:760px}
 
 /* sticky mobile cta */
-.mobile-cta{position:fixed;bottom:0;left:0;right:0;z-index:55;display:none;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(237,235,231,.2);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.15)}
+.mobile-cta{position:fixed;bottom:0;left:0;right:0;z-index:55;display:none;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--navy-deep);border-top:1px solid rgba(255,255,255,.1)}
+/* iOS safe-area: theme-color не красит бары на iOS 26 — закрашиваем зону чёлки фирменным цветом вручную */
+.ios-safe-top{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:var(--navy-deep);z-index:200;pointer-events:none}
 .mobile-cta .btn{flex:1;padding:15px}
 
 /* modal */
@@ -387,6 +389,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 </style>
 </head>
 <body>
+<div class="ios-safe-top" aria-hidden="true"></div>
 
 <!-- ============ HEADER ============ -->
 <header id="hdr">
@@ -775,7 +778,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 <!-- mobile sticky cta -->
 <div class="mobile-cta">
   <a href="tel:+74822691112" class="btn btn-ghost">Позвонить</a>
-  <button class="btn btn-dark" data-modal>Оставить заявку</button>
+  <button class="btn btn-tan" data-modal>Оставить заявку</button>
 </div>
 
 <!-- modal -->
