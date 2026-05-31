@@ -93,7 +93,7 @@ header.scrolled{background:rgba(237,235,231,.92);backdrop-filter:blur(14px);padd
 .nav{display:flex;align-items:center;justify-content:space-between;gap:28px}
 .logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:23px;letter-spacing:-.03em}
 .logo svg{width:34px;height:34px}
-.logo .sub{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:block;line-height:1;margin-top:3px}
+.logo .sub{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--navy);display:block;line-height:1;margin-top:3px}
 .nav-links{display:flex;gap:30px;align-items:center}
 .nav-links a{font-size:15px;font-weight:600;position:relative;padding:4px 0;transition:color .25s}
 .nav-links a::after{content:"";position:absolute;left:0;bottom:-2px;width:0;height:2px;background:var(--ink);transition:width .3s var(--ease)}
@@ -350,12 +350,22 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
   .g-item.wide{grid-column:span 2}
   .mobile-cta{display:flex}
   body{padding-bottom:74px}
-  .hero{padding-bottom:90px}
+  /* hero: флаг над заголовком (а не поверх), блок ниже к краю */
+  .hero{flex-direction:column;justify-content:flex-end;align-items:stretch;padding-bottom:58px}
+  .hero-top{position:static;margin:0 0 16px}
+  .hero h1{font-size:clamp(62px,17vw,96px);margin:8px 0 4px}
+  .hero-sub{margin-bottom:24px}
+  .hero-cta{margin-bottom:24px}
   .scroll-cue{display:none}
   .lead-perks{gap:14px}
   .contact-phone-row{flex-direction:column;align-items:flex-start}
-  .tabs{display:flex;flex-wrap:wrap;width:100%}
-  .tab{padding:10px 16px;font-size:13px}
+  /* табы секций: вертикально, на всю ширину, по центру */
+  .tabs{display:flex;flex-direction:column;width:100%;border-radius:16px;gap:6px;margin-bottom:32px}
+  .tab{width:100%;text-align:center;padding:13px 16px;font-size:14px;border-radius:11px}
+  /* калькулятор: симметричные отступы, без прижима к краю */
+  .calc{padding:26px 20px;gap:28px}
+  .calc-result{padding:28px 22px}
+  .field label{flex-wrap:wrap;gap:4px 12px}
   .prog-banner,.apts-footer{flex-direction:column;align-items:flex-start}
   .prog-banner .btn,.apts-footer .btn{width:100%}
 }
@@ -365,7 +375,8 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
   .apt-grid,.timeline,.gallery-grid{grid-template-columns:1fr}
   .g-item.wide{grid-column:auto}
   .g-item.tall{grid-row:auto}
-  .calc{padding:26px}
+  .calc{padding:24px 18px}
+  .calc-result{padding:26px 18px}
   .form-card,.contact-card,.pay-card{padding:26px}
 }
 </style>
