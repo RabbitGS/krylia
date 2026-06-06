@@ -873,42 +873,56 @@ document.getElementById('modalClose').onclick=()=>modal.classList.remove('open')
 modal.onclick=e=>{if(e.target===modal)modal.classList.remove('open')};
 
 /* ---- forms → amoCRM + страница «Спасибо» (цель Метрики по URL) ---- */
-// TODO: после настройки интеграции amoCRM вставить сюда URL Netlify-функции
-const LEAD_ENDPOINT='/.netlify/functions/lead';
+// Хостинг SprintHost (PHP). Приём заявок — /lead.php (порт бывшей Netlify-функции).
+// Боевой режим: заявки уходят в amoCRM (токен в lead_secret.php вне веб-корня).
+const LEAD_ENDPOINT='/lead.php';
 async function sendLead(data){
   if(!LEAD_ENDPOINT) return true; // endpoint ещё не настроен — демо-режим (заявка не уходит)
   try{
     const r=await fetch(LEAD_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    return r.ok;
+    let j={};try{j=await r.json();}catch(e){}
+    return r.ok && j.ok!==false;
   }catch(e){return false;}
 }
 function handleForm(formId){
   const f=document.getElementById(formId);
+  const showErr=msg=>{
+    let el=f.querySelector('.form-err');
+    if(!el){el=document.createElement('div');el.className='form-err';el.style.cssText='color:#c0392b;font-size:14px;margin-top:10px;text-align:center';f.appendChild(el);}
+    el.textContent=msg;
+  };
   f.addEventListener('submit',async e=>{
     e.preventDefault();
     const btn=f.querySelector('button[type=submit]');
+    const phoneEl=f.querySelector('[name=phone]');
+    if(phoneEl.value.replace(/\D/g,'').length<11){showErr('Введите номер телефона полностью.');phoneEl.focus();return;}
     const data={
       name:f.querySelector('[name=name]').value.trim(),
-      phone:f.querySelector('[name=phone]').value.trim(),
+      phone:phoneEl.value.trim(),
       form:formId,
       apt:f.dataset.apt||'',
       page:location.href
     };
+    const orig=btn?btn.textContent:'';
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
-    await sendLead(data);
-    window.location.href='thankyou.html'; // переход на «Спасибо» → засчитывается цель Метрики
+    const ok=await sendLead(data);
+    if(ok){window.location.href='thankyou.html';return;} // «Спасибо» → цель Метрики
+    if(btn){btn.disabled=false;btn.textContent=orig;}
+    showErr('Не удалось отправить заявку. Проверьте номер и попробуйте ещё раз.');
   });
 }
 handleForm('leadForm');
 handleForm('modalForm');
 handleForm('aptForm');
 
-/* phone mask (light) */
+/* phone mask (light) — не мешает удалению/правке */
 document.querySelectorAll('input[type=tel]').forEach(inp=>{
-  inp.addEventListener('input',()=>{
+  inp.addEventListener('input',e=>{
+    if(e.inputType&&e.inputType.indexOf('delete')===0)return; // при стирании не переформатируем
     let v=inp.value.replace(/\D/g,'').slice(0,11);
     if(v.startsWith('8'))v='7'+v.slice(1);
-    if(!v.startsWith('7'))v='7'+v;
+    if(v&&!v.startsWith('7'))v='7'+v;
+    if(!v){inp.value='';return;} // даём очистить поле
     let out='+7';
     if(v.length>1)out+=' ('+v.slice(1,4);
     if(v.length>=4)out+=') '+v.slice(4,7);
