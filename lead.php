@@ -44,11 +44,13 @@ if (!$SUB || !$TOKEN) {
 $data = json_decode(file_get_contents('php://input'), true);
 if (!is_array($data)) $data = [];
 
-$name   = mb_substr(trim((string)($data['name']  ?? '')), 0, 200);
-$phone  = mb_substr(trim((string)($data['phone'] ?? '')), 0, 50);
-$apt    = mb_substr(trim((string)($data['apt']   ?? '')), 0, 200);
-$formId = mb_substr(trim((string)($data['form']  ?? '')), 0, 50);
-$page   = mb_substr(trim((string)($data['page']  ?? '')), 0, 300);
+$name   = mb_substr(trim((string)($data['name']   ?? '')), 0, 200);
+$phone  = mb_substr(trim((string)($data['phone']  ?? '')), 0, 50);
+$apt    = mb_substr(trim((string)($data['apt']    ?? '')), 0, 200);
+$finish = mb_substr(trim((string)($data['finish'] ?? '')), 0, 100);
+$source = mb_substr(trim((string)($data['source'] ?? '')), 0, 120);
+$formId = mb_substr(trim((string)($data['form']   ?? '')), 0, 50);
+$page   = mb_substr(trim((string)($data['page']   ?? '')), 0, 300);
 
 // простая защита: телефон должен содержать минимум 10 цифр
 if (strlen(preg_replace('/\D/', '', $phone)) < 10) {
@@ -77,7 +79,10 @@ function amo_post($url, $headers, $payload) {
 }
 
 // 1) сделка + контакт одним запросом (/leads/complex)
-$leadName = 'Заявка с сайта Крылья' . ($apt ? ' — ' . explode(',', $apt)[0] : '');
+$leadName = 'Заявка с сайта Крылья';
+if ($apt)         $leadName .= ' — ' . explode(',', $apt)[0];
+elseif ($finish)  $leadName .= ' — отделка «' . $finish . '»';
+elseif ($source)  $leadName .= ' — ' . $source;
 $lead = [
   'name' => $leadName,
   '_embedded' => [
@@ -106,9 +111,11 @@ $parsed = json_decode((string)$body, true);
 if (isset($parsed[0]['id'])) $leadId = $parsed[0]['id'];
 if ($leadId) {
   $note = "Заявка с сайта\nИмя: {$name}\nТелефон: {$phone}"
-    . ($apt    ? "\nКвартира: {$apt}"  : '')
-    . ($formId ? "\nФорма: {$formId}"  : '')
-    . ($page   ? "\nСтраница: {$page}" : '');
+    . ($apt    ? "\nКвартира: {$apt}"             : '')
+    . ($finish ? "\nФормат отделки: {$finish}"    : '')
+    . ($source ? "\nРаздел сайта: {$source}"      : '')
+    . ($formId ? "\nФорма: {$formId}"             : '')
+    . ($page   ? "\nСтраница: {$page}"            : '');
   amo_post("{$base}/api/v4/leads/{$leadId}/notes", $headers, [['note_type' => 'common', 'params' => ['text' => $note]]]);
 }
 
