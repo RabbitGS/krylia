@@ -318,6 +318,8 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .form-card .fc-sub{color:var(--muted);font-size:14px;margin-bottom:24px}
 .inp{width:100%;padding:16px 18px;border:1.5px solid var(--line);border-radius:10px;font-size:16px;font-family:inherit;margin-bottom:14px;transition:border .25s;background:#fafafa}
 .inp:focus{outline:none;border-color:var(--navy);background:#fff}
+/* honeypot — приманка для ботов: невидимо и недоступно людям, но есть в DOM */
+.hp-field{position:absolute!important;left:-9999px!important;top:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1}
 .consent{font-size:12px;color:var(--muted);line-height:1.5;margin-top:14px}
 .consent a{text-decoration:underline}
 .form-success{display:none;text-align:center;padding:30px 10px}
@@ -819,6 +821,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
         <p class="fc-sub">Заполните форму — менеджер свяжется с вами</p>
         <input class="inp" type="text" name="name" placeholder="Ваше имя" required>
         <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+        <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
         <button class="btn btn-dark btn-wide" type="submit">Получить консультацию</button>
         <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a> и обработкой персональных данных.</p>
       </form>
@@ -920,6 +923,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <p class="m-sub">Перезвоним в течение 15 минут и ответим на все вопросы</p>
       <input class="inp" type="text" name="name" placeholder="Ваше имя" required>
       <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+      <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
       <button class="btn btn-dark btn-wide" type="submit">Жду звонка</button>
       <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a>.</p>
     </form>
@@ -945,6 +949,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
         <form id="aptForm">
           <input class="inp" type="text" name="name" placeholder="Ваше имя" required style="margin-top:18px">
           <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+          <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
           <button class="btn btn-dark btn-wide" type="submit">Оставить заявку</button>
           <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a>.</p>
         </form>
@@ -962,6 +967,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <p class="m-sub">Выбранный формат: <b id="finishModalTier" style="color:var(--navy)">Под ключ</b>. Менеджер рассчитает стоимость и условия.</p>
       <input class="inp" type="text" name="name" placeholder="Ваше имя" required>
       <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
+      <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
       <button class="btn btn-dark btn-wide" type="submit">Оставить заявку</button>
       <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a>.</p>
     </form>
@@ -1022,6 +1028,7 @@ async function sendLead(data){
 }
 function handleForm(formId){
   const f=document.getElementById(formId);
+  const startTs=Date.now(); // time-trap: засекаем с момента инициализации
   const showErr=msg=>{
     let el=f.querySelector('.form-err');
     if(!el){el=document.createElement('div');el.className='form-err';el.style.cssText='color:#c0392b;font-size:14px;margin-top:10px;text-align:center';f.appendChild(el);}
@@ -1032,6 +1039,7 @@ function handleForm(formId){
     const btn=f.querySelector('button[type=submit]');
     const phoneEl=f.querySelector('[name=phone]');
     if(phoneEl.value.replace(/\D/g,'').length<11){showErr('Введите номер телефона полностью.');phoneEl.focus();return;}
+    const hpEl=f.querySelector('[name=company]');
     const data={
       name:f.querySelector('[name=name]').value.trim(),
       phone:phoneEl.value.trim(),
@@ -1039,7 +1047,9 @@ function handleForm(formId){
       apt:f.dataset.apt||'',
       finish:f.dataset.finish||'',
       source:f.dataset.source||'',
-      page:location.href
+      page:location.href,
+      company:hpEl?hpEl.value:'', // honeypot: у людей пусто
+      t:Date.now()-startTs        // time-trap: мс с инициализации формы
     };
     const orig=btn?btn.textContent:'';
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}

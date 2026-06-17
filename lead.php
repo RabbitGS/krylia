@@ -52,6 +52,20 @@ $source = mb_substr(trim((string)($data['source'] ?? '')), 0, 120);
 $formId = mb_substr(trim((string)($data['form']   ?? '')), 0, 50);
 $page   = mb_substr(trim((string)($data['page']   ?? '')), 0, 300);
 
+// --- Антибот ---
+// 1) honeypot: поле "company" скрыто от людей; если заполнено — это бот.
+// 2) time-trap: форма отправлена быстрее MIN_FILL_MS после загрузки — это бот.
+// Боту отвечаем «успех» (200 ok), чтобы он не подбирал обход, но заявку НЕ создаём.
+$honeypot = trim((string)($data['company'] ?? ''));
+$elapsed  = isset($data['t']) && is_numeric($data['t']) ? (int)$data['t'] : null;
+$MIN_FILL_MS = 2500;
+if ($honeypot !== '' || ($elapsed !== null && $elapsed < $MIN_FILL_MS)) {
+  // тихо отбрасываем; по желанию можно логировать в файл вне веб-корня
+  http_response_code(200);
+  echo json_encode(['ok' => true]);
+  exit;
+}
+
 // простая защита: телефон должен содержать минимум 10 цифр
 if (strlen(preg_replace('/\D/', '', $phone)) < 10) {
   http_response_code(400);
