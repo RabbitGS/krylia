@@ -1054,7 +1054,11 @@ function handleForm(formId){
     const orig=btn?btn.textContent:'';
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
     const ok=await sendLead(data);
-    if(ok){window.location.href='thankyou.html';return;} // «Спасибо» → цель Метрики
+    if(ok){
+      // двойной трекинг лида: JS-цель reachGoal + url-цель «submitted» (стр. «Спасибо»)
+      try{if(window.ym)ym(103897523,'reachGoal','lead_form',{form:formId,source:data.source});}catch(e){}
+      window.location.href='thankyou.html?submitted=1';return;
+    }
     if(btn){btn.disabled=false;btn.textContent=orig;}
     showErr('Не удалось отправить заявку. Проверьте номер и попробуйте ещё раз.');
   });
