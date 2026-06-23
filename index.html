@@ -1054,11 +1054,7 @@ function handleForm(formId){
     const orig=btn?btn.textContent:'';
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
     const ok=await sendLead(data);
-    if(ok){
-      // двойной трекинг лида: JS-цель reachGoal + url-цель «submitted» (стр. «Спасибо»)
-      try{if(window.ym)ym(103897523,'reachGoal','lead_form',{form:formId,source:data.source});}catch(e){}
-      window.location.href='thankyou.html?submitted=1';return;
-    }
+    if(ok){window.location.href='thankyou.html';return;} // все формы → «Спасибо» = цель подсчёта заявок
     if(btn){btn.disabled=false;btn.textContent=orig;}
     showErr('Не удалось отправить заявку. Проверьте номер и попробуйте ещё раз.');
   });
@@ -1067,6 +1063,14 @@ handleForm('leadForm');
 handleForm('modalForm');
 handleForm('aptForm');
 handleForm('finishForm');
+
+/* шаг воронки «открыл форму» — первый фокус на любом поле любой формы (для составной цели аналитики) */
+let formOpened=false;
+document.querySelectorAll('form input').forEach(inp=>inp.addEventListener('focus',()=>{
+  if(formOpened)return; formOpened=true;
+  try{if(window.ym)ym(103897523,'reachGoal','form_open');}catch(e){}
+}));
+
 /* раздел сайта по умолчанию для статичных форм */
 document.getElementById('leadForm').dataset.source='Форма внизу — консультация';
 document.getElementById('aptForm').dataset.source='Карточка квартиры';
