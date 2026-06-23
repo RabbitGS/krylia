@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Крылья">
 <title>ЖК «Крылья» — современный жилой комплекс на Планерной в Твери</title>
-<meta name="description" content="ЖК «Крылья» в Твери на ул. Планерная: умные планировки, панорамное остекление, эркеры, автономное отопление, монолит-кирпич, паркинг. Квартиры от 4,3 млн ₽. Семейная ипотека от 3,5%, Trade-In, рассрочка.">
+<meta name="description" content="ЖК «Крылья» в Твери на ул. Планерная: умные планировки, панорамное остекление, эркеры, автономное отопление, монолит-кирпич, паркинг. Квартиры от 5,1 млн ₽. Семейная ипотека от 3,5%, Trade-In, рассрочка.">
 <link rel="preload" as="image" href="images/hero.webp" fetchpriority="high">
 <style>
 /* Manrope — локально (без Google Fonts: fonts.googleapis.com недоступен в РФ → блокировал отрисовку) */
@@ -322,6 +322,15 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 .hp-field{position:absolute!important;left:-9999px!important;top:-9999px!important;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1}
 .consent{font-size:12px;color:var(--muted);line-height:1.5;margin-top:14px}
 .consent a{text-decoration:underline}
+.consent.consent-check{display:flex;gap:9px;align-items:flex-start;cursor:pointer}
+.consent-check input{margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:var(--navy);cursor:pointer}
+/* cookie consent banner */
+.cookie-bar{position:fixed;left:16px;right:16px;bottom:16px;z-index:120;max-width:580px;margin:0 auto;background:var(--navy-deep);color:#fff;border-radius:14px;padding:18px 22px;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);display:none;align-items:center;gap:18px;flex-wrap:wrap}
+.cookie-bar.show{display:flex}
+.cookie-bar p{font-size:13.5px;line-height:1.5;color:rgba(255,255,255,.85);flex:1;min-width:200px;margin:0}
+.cookie-bar a{color:var(--tan);text-decoration:underline}
+.cookie-bar .btn{padding:11px 26px;font-size:14px}
+@media(max-width:760px){.cookie-bar{bottom:calc(80px + env(safe-area-inset-bottom));left:10px;right:10px}}
 .form-success{display:none;text-align:center;padding:30px 10px}
 .form-success.show{display:block}
 .form-success .chk{width:64px;height:64px;border-radius:50%;background:var(--navy);color:var(--tan);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
@@ -349,7 +358,7 @@ input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;bac
 
 /* footer */
 footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
-.foot-top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:40px;padding-bottom:46px;border-bottom:1px solid var(--line-light)}
+.foot-top{display:grid;grid-template-columns:1.4fr 1fr 1.2fr;gap:40px;padding-bottom:46px;border-bottom:1px solid var(--line-light)}
 .foot-logo{font-size:26px;font-weight:800;display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .foot-logo svg{width:38px;height:38px}
 .foot-about{color:var(--muted-navy);font-size:14px;line-height:1.6;max-width:320px}
@@ -530,7 +539,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <button class="btn btn-outline-light" data-modal data-source="Главный экран — Узнать цены">Узнать цены и условия</button>
     </div>
     <div class="hero-badges rv in rv-d2">
-      <span class="pill on-photo">от 4,3 млн ₽</span>
+      <span class="pill on-photo">от 5,1 млн ₽</span>
       <span class="pill on-photo">📍 10 минут до центра</span>
       <span class="pill on-photo">Сдача — III квартал 2027</span>
       <span class="pill on-photo">Монолит-кирпич</span>
@@ -576,7 +585,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       </div>
     </div>
     <div class="about-media rv rv-d1">
-      <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1000&q=80" alt="Интерьер квартиры ЖК Крылья" loading="lazy">
+      <img src="images/site/about.webp?v=2" alt="Панорамное остекление и эркеры ЖК «Крылья»" loading="lazy">
       <div class="about-tag"><b>Светлые квартиры с эркером</b><span>панорамное остекление в каждой секции</span></div>
     </div>
   </div>
@@ -746,19 +755,19 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
     <h2 class="h-sec rv rv-d1">Строим открыто</h2>
     <div class="timeline">
       <div class="tl-card rv">
-        <div class="tl-img"><span class="tl-stage">Секции 1–6</span><img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=700&q=80" alt="" loading="lazy"></div>
+        <div class="tl-img"><span class="tl-stage">Секции 1–6</span><img src="images/site/tl1.webp?v=2" alt="Сданные секции 1–6 ЖК «Крылья»" loading="lazy"></div>
         <div class="tl-body"><b>Сданы и заселены</b><span>жители уже живут в своих квартирах</span></div>
       </div>
       <div class="tl-card rv rv-d1">
-        <div class="tl-img"><span class="tl-stage">Секции 7–10</span><img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=700&q=80" alt="" loading="lazy"></div>
-        <div class="tl-body"><b>Монолитные работы</b><span>возведение каркаса секций</span></div>
+        <div class="tl-img"><span class="tl-stage">Инженерия</span><img src="images/site/tl2.webp?v=2" alt="Автономное отопление ЖК «Крылья»" loading="lazy"></div>
+        <div class="tl-body"><b>Автономное отопление</b><span>своя котельная — тепло и горячая вода круглый год</span></div>
       </div>
       <div class="tl-card rv rv-d2">
-        <div class="tl-img"><span class="tl-stage">Секции 7–10</span><img src="https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=700&q=80" alt="" loading="lazy"></div>
-        <div class="tl-body"><b>Фасад и остекление</b><span>панорамные окна и облицовка</span></div>
+        <div class="tl-img"><span class="tl-stage">Двор</span><img src="images/site/tl3.webp?v=2" alt="Благоустроенный двор без машин ЖК «Крылья»" loading="lazy"></div>
+        <div class="tl-body"><b>Двор без машин</b><span>закрытая территория, площадки и гостевой паркинг</span></div>
       </div>
       <div class="tl-card rv rv-d3">
-        <div class="tl-img"><span class="tl-stage">2027</span><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=700&q=80" alt="" loading="lazy"></div>
+        <div class="tl-img"><span class="tl-stage">2027</span><img src="images/site/tl4.webp?v=2" alt="Готовый комплекс ЖК «Крылья» после ввода в эксплуатацию" loading="lazy"></div>
         <div class="tl-body"><b>Ввод в эксплуатацию</b><span>III квартал 2027 (план)</span></div>
       </div>
     </div>
@@ -823,7 +832,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
         <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
         <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
         <button class="btn btn-dark btn-wide" type="submit">Получить консультацию</button>
-        <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a> и обработкой персональных данных.</p>
+        <label class="consent consent-check"><input type="checkbox" name="consent" required><span>Я даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и принимаю <a href="/privacy" target="_blank" rel="noopener">политику конфиденциальности</a>.</span></label>
       </form>
       <div class="form-success" id="leadSuccess">
         <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="30" height="30"><path d="M5 13l4 4L19 7"/></svg></div>
@@ -888,13 +897,6 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
         <a href="#contacts">Контакты</a>
       </div>
       <div class="foot-col">
-        <h4>Квартиры</h4>
-        <a href="https://krylia-tver.ru/all" target="_blank" rel="noopener">Все квартиры</a>
-        <a href="https://krylia-tver.ru/7-8" target="_blank" rel="noopener">1 секция · подъезды 7–8</a>
-        <a href="https://krylia-tver.ru/9-10" target="_blank" rel="noopener">2 секция · подъезды 9–10</a>
-        <a href="https://vk.ru/a1_group_russia" target="_blank" rel="noopener">Сообщество ВКонтакте</a>
-      </div>
-      <div class="foot-col">
         <h4>Контакты</h4>
         <a href="tel:+74822691112" style="font-size:20px;font-weight:800;color:#fff">+7 4822 69-11-12</a>
         <p>Тверь, ул. Советская, 38, 2 этаж</p>
@@ -903,7 +905,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
     </div>
     <div class="foot-bottom">
       <p class="disclaimer">Информация на сайте носит исключительно информационный характер и ни при каких условиях не является публичной офертой (ст. 437 ГК РФ). © ООО СЗ «Премьер Стройсервис». Все права защищены.</p>
-      <p><a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">Политика конфиденциальности</a></p>
+      <p><a href="/privacy" target="_blank" rel="noopener">Политика конфиденциальности</a> · <a href="/consent" target="_blank" rel="noopener">Согласие на обработку ПДн</a></p>
     </div>
   </div>
 </footer>
@@ -925,7 +927,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
       <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
       <button class="btn btn-dark btn-wide" type="submit">Жду звонка</button>
-      <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a>.</p>
+      <label class="consent consent-check"><input type="checkbox" name="consent" required><span>Я даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и принимаю <a href="/privacy" target="_blank" rel="noopener">политику конфиденциальности</a>.</span></label>
     </form>
     <div class="form-success" id="modalSuccess">
       <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="30" height="30"><path d="M5 13l4 4L19 7"/></svg></div>
@@ -951,7 +953,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
           <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
           <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
           <button class="btn btn-dark btn-wide" type="submit">Оставить заявку</button>
-          <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a>.</p>
+          <label class="consent consent-check"><input type="checkbox" name="consent" required><span>Я даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и принимаю <a href="/privacy" target="_blank" rel="noopener">политику конфиденциальности</a>.</span></label>
         </form>
       </div>
     </div>
@@ -969,7 +971,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
       <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
       <button class="btn btn-dark btn-wide" type="submit">Оставить заявку</button>
-      <p class="consent">Нажимая кнопку, вы соглашаетесь с <a href="https://krylia-tver.ru/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a>.</p>
+      <label class="consent consent-check"><input type="checkbox" name="consent" required><span>Я даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и принимаю <a href="/privacy" target="_blank" rel="noopener">политику конфиденциальности</a>.</span></label>
     </form>
     <div class="form-success" id="finishSuccess">
       <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="30" height="30"><path d="M5 13l4 4L19 7"/></svg></div>
@@ -977,6 +979,12 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <p>Мы свяжемся с вами в ближайшее время.</p>
     </div>
   </div>
+</div>
+
+<!-- cookie consent banner -->
+<div class="cookie-bar" id="cookieBar" role="dialog" aria-label="Уведомление о файлах cookie">
+  <p>Мы используем файлы cookie и сервис Яндекс.Метрика для аналитики и улучшения сайта. Оставаясь на сайте, вы соглашаетесь с этим — подробнее в <a href="/privacy" target="_blank" rel="noopener">политике конфиденциальности</a>.</p>
+  <button class="btn btn-tan" id="cookieAccept">Принять</button>
 </div>
 
 <!-- lightbox: фотоотчёт стройки -->
@@ -1047,6 +1055,7 @@ function handleForm(formId){
       apt:f.dataset.apt||'',
       finish:f.dataset.finish||'',
       source:f.dataset.source||'',
+      consent:(f.querySelector('[name=consent]')||{}).checked?'yes':'',
       page:location.href,
       company:hpEl?hpEl.value:'', // honeypot: у людей пусто
       t:Date.now()-startTs        // time-trap: мс с инициализации формы
@@ -1054,7 +1063,7 @@ function handleForm(formId){
     const orig=btn?btn.textContent:'';
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
     const ok=await sendLead(data);
-    if(ok){window.location.href='thankyou.html';return;} // все формы → «Спасибо» = цель подсчёта заявок
+    if(ok){window.location.href='thankyou.html';return;} // «Спасибо» → цель Метрики
     if(btn){btn.disabled=false;btn.textContent=orig;}
     showErr('Не удалось отправить заявку. Проверьте номер и попробуйте ещё раз.');
   });
@@ -1094,12 +1103,12 @@ document.querySelectorAll('input[type=tel]').forEach(inp=>{
 
 /* ---- apartments data + render ---- */
 const apartments=[
-  {type:'1-комнатная',area:'44,3 м²',price:'5 100 000 ₽',status:'В продаже',img:'images/plans/p_1k_443.jpg'},
-  {type:'1-комнатная',area:'45,3 м²',price:'5 210 000 ₽',status:'Хит',img:'images/plans/p_1k_453.jpg'},
-  {type:'2-комнатная',area:'64,8 м²',price:'7 130 000 ₽',status:'В продаже',img:'images/plans/p_2k_648.jpg'},
-  {type:'2-комнатная',area:'72,5 м²',price:'7 980 000 ₽',status:'В продаже',img:'images/plans/p_2k_725.jpg'},
-  {type:'3-комнатная',area:'90,0 м²',price:'9 450 000 ₽',status:'В продаже',img:'images/plans/p_3k_90.jpg'},
-  {type:'3-комнатная',area:'91,8 м²',price:'9 640 000 ₽',status:'В продаже',img:'images/plans/p_3k_918.jpg'},
+  {type:'1-комнатная',area:'44,3 м²',price:'5 452 590 ₽',status:'В продаже',img:'images/plans/p_1k_443.webp?v=2'},
+  {type:'1-комнатная',area:'45,3 м²',price:'5 581 740 ₽',status:'Хит',img:'images/plans/p_1k_453.webp?v=2'},
+  {type:'2-комнатная',area:'64,8 м²',price:'7 718 340 ₽',status:'В продаже',img:'images/plans/p_2k_648.webp?v=2'},
+  {type:'2-комнатная',area:'72,5 м²',price:'8 629 880 ₽',status:'В продаже',img:'images/plans/p_2k_725.webp?v=2'},
+  {type:'3-комнатная',area:'90,0 м²',price:'10 393 700 ₽',status:'В продаже',img:'images/plans/p_3k_90.webp?v=2'},
+  {type:'3-комнатная',area:'91,8 м²',price:'10 560 450 ₽',status:'В продаже',img:'images/plans/p_3k_918.webp?v=2'},
 ];
 const grid=document.getElementById('aptGrid');
 function renderApts(){
@@ -1206,6 +1215,19 @@ gItems.forEach((it,i)=>it.addEventListener('click',()=>openLightbox(gSrcs,i)));
 /* фотоотчёт со стройки — фото поверх сайта */
 const reportPhotos=Array.from({length:10},(_,i)=>'images/progress/ph'+(i+1)+'.jpg');
 document.getElementById('photoReportBtn').onclick=()=>openLightbox(reportPhotos,0);
+
+/* ---- cookie consent banner (мягкий режим: Метрика грузится сразу, баннер информирует) ---- */
+(function(){
+  var KEY='krylia_cookie_ok';
+  var bar=document.getElementById('cookieBar');
+  if(!bar)return;
+  try{if(localStorage.getItem(KEY))return;}catch(e){}
+  bar.classList.add('show');
+  document.getElementById('cookieAccept').onclick=function(){
+    try{localStorage.setItem(KEY,'1');}catch(e){}
+    bar.classList.remove('show');
+  };
+})();
 </script>
 </body>
 </html>
