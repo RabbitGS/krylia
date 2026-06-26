@@ -69,6 +69,7 @@ $cnt = ['accepted' => 0, 'honeypot' => 0, 'timetrap' => 0, 'bad_phone' => 0];
 $suspect = 0;                              // прошли как accepted, но без поля t — вероятно прямой POST бота
 $byday = [];
 $bySource = [];
+$phoneFreq = [];                           // сколько заявок с этого телефона (за период)
 foreach ($rows as $r) {
   $d = $r['decision'] ?? '?';
   if (isset($cnt[$d])) $cnt[$d]++;
@@ -81,6 +82,8 @@ foreach ($rows as $r) {
   if ($d === 'accepted') {
     $src = trim((string)($r['source'] ?? '')) ?: (trim((string)($r['form'] ?? '')) ?: '—');
     $bySource[$src] = ($bySource[$src] ?? 0) + 1;
+    $ph = preg_replace('/\D/', '', (string)($r['phone'] ?? ''));
+    if ($ph) $phoneFreq[$ph] = ($phoneFreq[$ph] ?? 0) + 1;
   }
 }
 krsort($byday);
@@ -94,6 +97,30 @@ usort($bots,  fn($a, $b) => ($b['_ts'] ?? 0) <=> ($a['_ts'] ?? 0));
 function h($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 function dt($ts) { return $ts ? date('d.m H:i', $ts) : '—'; }
 function clip($s, $n) { $s = (string)$s; return mb_strlen($s) > $n ? mb_substr($s, 0, $n) . '…' : $s; }
+function device($ua) {
+  $ua = (string)$ua;
+  if ($ua === '') return '—';
+  if (preg_match('/iPad|Tablet/i', $ua)) $t = 'Планшет';
+  elseif (preg_match('/Mobi|Android|iPhone/i', $ua)) $t = 'Телефон';
+  else $t = 'Ноутбук / ПК';
+  $b = '';
+  if (preg_match('/YaBrowser/i', $ua)) $b = 'Яндекс';
+  elseif (preg_match('/Edg/i', $ua)) $b = 'Edge';
+  elseif (preg_match('/OPR|Opera/i', $ua)) $b = 'Opera';
+  elseif (preg_match('/Chrome/i', $ua)) $b = 'Chrome';
+  elseif (preg_match('/Firefox/i', $ua)) $b = 'Firefox';
+  elseif (preg_match('/Safari/i', $ua)) $b = 'Safari';
+  return trim($t . ($b ? " · $b" : ''));
+}
+function howCame($r) {
+  $utm = trim(((string)($r['utm_source'] ?? '')) . ' ' . ((string)($r['utm_medium'] ?? '')) . ' ' . ((string)($r['utm_campaign'] ?? '')));
+  if ($utm !== '') return 'Реклама: ' . $utm;
+  $ref = (string)($r['referrer'] ?? '');
+  if ($ref === '') return 'Прямой переход / не определён';
+  $host = parse_url($ref, PHP_URL_HOST) ?: $ref;
+  if (preg_match('/yandex|google|bing|mail\.ru|duckduck|rambler/i', $host)) return 'Поиск: ' . $host;
+  return 'Переход с: ' . $host;
+}
 $totalReq = count($rows);
 $botsCaught = $cnt['honeypot'] + $cnt['timetrap'];
 $rangeLabel = ['1' => 'сегодня', '7' => '7 дней', '30' => '30 дней', 'all' => 'всё время'][$range];
@@ -132,7 +159,19 @@ $rangeLabel = ['1' => 'сегодня', '7' => '7 дней', '30' => '30 дне�
   .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;color:var(--muted)}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
   .empty{color:var(--muted);padding:18px;background:#fff;border:1px dashed var(--line);border-radius:14px}
-  @media(max-width:780px){.cards{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+  details.lead{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
+  details.lead>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap}
+  details.lead>summary::-webkit-details-marker{display:none}
+  details.lead[open]>summary{border-bottom:1px solid var(--line);background:#fafbfc}
+  .s-dt{color:var(--muted);font-size:12.5px;min-width:78px}
+  .s-name{font-weight:700} .s-phone{color:var(--ink)}
+  .pill.rep{background:#eef0f6;color:var(--navy)}
+  .stat{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;padding:14px 16px}
+  .stat>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .stat>div.full{grid-column:1/-1}
+  .stat b{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+  .stat span{font-size:13.5px;word-break:break-word}
+  @media(max-width:780px){.cards{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.stat{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -182,23 +221,37 @@ $rangeLabel = ['1' => 'сегодня', '7' => '7 дней', '30' => '30 дне�
     </div>
   </div>
 
-  <h2>Заявки</h2>
+  <h2>Заявки <span class="mono" style="text-transform:none;letter-spacing:0">(клик по строке — подробно)</span></h2>
   <?php if ($leads): ?>
-  <table>
-    <tr><th>Время</th><th>Имя</th><th>Телефон</th><th>Происхождение</th><th>IP</th><th>Статус</th></tr>
-    <?php foreach ($leads as $r):
-      $sus = (($r['t'] ?? '') === ''); ?>
-      <tr>
-        <td><?=dt($r['_ts'] ?? 0)?></td>
-        <td><?=h(clip($r['name'] ?? '', 30))?></td>
-        <td class="mono"><?=h($r['phone'] ?? '')?></td>
-        <td><?=h(clip(($r['source'] ?? '') ?: ($r['form'] ?? ''), 32))?><br><span class="mono"><?=h(clip($r['page'] ?? '', 40))?></span></td>
-        <td class="mono"><?=h($r['ip'] ?? '')?></td>
-        <td><?php if($sus):?><span class="pill sus">прямой POST?</span><?php else:?><span class="pill real">форма</span><?php endif;?></td>
-      </tr>
-    <?php endforeach; ?>
-  </table>
-  <p class="mono">* «Подозрение на прямого бота» — заявка прошла как принятая, но без поля <b>t</b> (живая форма всегда шлёт время заполнения). Вероятно, прямой POST на lead.php мимо страницы.</p>
+  <?php foreach ($leads as $r):
+    $sus = (($r['t'] ?? '') === '');
+    $ph = preg_replace('/\D/', '', (string)($r['phone'] ?? ''));
+    $rep = $ph ? ($phoneFreq[$ph] ?? 1) : 1;
+    $utm = trim(((string)($r['utm_source'] ?? '')) . '/' . ((string)($r['utm_medium'] ?? '')) . '/' . ((string)($r['utm_campaign'] ?? '')), '/'); ?>
+  <details class="lead">
+    <summary>
+      <span class="s-dt"><?=dt($r['_ts'] ?? 0)?></span>
+      <span class="s-name"><?=h(clip(($r['name'] ?? '') ?: 'Без имени', 30))?></span>
+      <span class="mono s-phone"><?=h($r['phone'] ?? '')?></span>
+      <?php if($sus):?><span class="pill sus">прямой POST?</span><?php else:?><span class="pill real">форма</span><?php endif;?>
+      <?php if($rep>1):?><span class="pill rep" title="заявок с этого телефона за период">×<?=$rep?></span><?php endif;?>
+    </summary>
+    <div class="stat">
+      <div><b>Как перешёл на сайт</b><span><?=h(howCame($r))?></span></div>
+      <div><b>Устройство</b><span><?=h(device($r['ua'] ?? ''))?></span></div>
+      <div><b>Заявка пришла со страницы</b><span class="mono"><?=h(($r['page'] ?? '') ?: '—')?></span></div>
+      <div><b>Раздел / форма</b><span><?=h(($r['source'] ?? '') ?: ($r['form'] ?? '—'))?></span></div>
+      <div><b>Referrer</b><span class="mono"><?=h(($r['referrer'] ?? '') ?: '—')?></span></div>
+      <div><b>UTM (source/medium/campaign)</b><span class="mono"><?=h($utm ?: '—')?></span></div>
+      <div><b>Заявок с этого телефона</b><span><?=$rep?> <span class="mono">(за период)</span></span></div>
+      <div><b>ClientID Метрики</b><span class="mono"><?=h(($r['cid'] ?? '') ?: '—')?></span></div>
+      <div><b>IP</b><span class="mono"><?=h(($r['ip'] ?? '') ?: '—')?></span></div>
+      <div><b>Время заполнения формы</b><span><?=($r['t'] ?? '') !== '' ? h($r['t']).' мс' : '— нет (подозрение на прямой POST)'?></span></div>
+      <div class="full"><b>User-Agent</b><span class="mono"><?=h(($r['ua'] ?? '') ?: '—')?></span></div>
+    </div>
+  </details>
+  <?php endforeach; ?>
+  <p class="mono">* «прямой POST?» — заявка принята, но без поля <b>t</b> (живая форма всегда шлёт время заполнения) → вероятно бот напрямую на lead.php мимо страницы. «ClientID» появится у заявок, пришедших уже после обновления формы.</p>
   <?php else: ?><div class="empty">Принятых заявок за период нет.</div><?php endif; ?>
 
   <h2>Пойманные боты</h2>

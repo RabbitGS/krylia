@@ -51,6 +51,11 @@ $finish = mb_substr(trim((string)($data['finish'] ?? '')), 0, 100);
 $source = mb_substr(trim((string)($data['source'] ?? '')), 0, 120);
 $formId = mb_substr(trim((string)($data['form']   ?? '')), 0, 50);
 $page   = mb_substr(trim((string)($data['page']   ?? '')), 0, 300);
+$referrer     = mb_substr(trim((string)($data['referrer']     ?? '')), 0, 300);
+$utm_source   = mb_substr(trim((string)($data['utm_source']   ?? '')), 0, 100);
+$utm_medium   = mb_substr(trim((string)($data['utm_medium']   ?? '')), 0, 100);
+$utm_campaign = mb_substr(trim((string)($data['utm_campaign'] ?? '')), 0, 150);
+$cid          = mb_substr(trim((string)($data['cid']          ?? '')), 0, 50);
 
 // --- ДИАГНОСТИКА: лог каждого POST в файл вне веб-корня (не блокирует, только пишет) ---
 function lead_log($decision, $data) {
@@ -66,6 +71,11 @@ function lead_log($decision, $data) {
     't'        => $data['t'] ?? '',                  // time-trap, мс с загрузки формы
     'form'     => (string)($data['form']   ?? ''),
     'page'     => (string)($data['page']   ?? ''),
+    'referrer'     => (string)($data['referrer']     ?? ''),
+    'utm_source'   => (string)($data['utm_source']   ?? ''),
+    'utm_medium'   => (string)($data['utm_medium']   ?? ''),
+    'utm_campaign' => (string)($data['utm_campaign'] ?? ''),
+    'cid'          => (string)($data['cid']          ?? ''),
   ];
   $f = (($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/../lead_log.jsonl');
   @file_put_contents($f, json_encode($rec, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
@@ -152,7 +162,10 @@ if ($leadId) {
     . ($finish ? "\nФормат отделки: {$finish}"    : '')
     . ($source ? "\nРаздел сайта: {$source}"      : '')
     . ($formId ? "\nФорма: {$formId}"             : '')
-    . ($page   ? "\nСтраница: {$page}"            : '');
+    . ($page   ? "\nСтраница: {$page}"            : '')
+    . ($referrer ? "\nReferrer: {$referrer}"      : '')
+    . (($utm_source || $utm_medium || $utm_campaign) ? "\nUTM: {$utm_source}/{$utm_medium}/{$utm_campaign}" : '')
+    . ($cid    ? "\nClientID: {$cid}"             : '');
   amo_post("{$base}/api/v4/leads/{$leadId}/notes", $headers, [['note_type' => 'common', 'params' => ['text' => $note]]]);
 }
 

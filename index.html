@@ -1048,6 +1048,7 @@ function handleForm(formId){
     const phoneEl=f.querySelector('[name=phone]');
     if(phoneEl.value.replace(/\D/g,'').length<11){showErr('Введите номер телефона полностью.');phoneEl.focus();return;}
     const hpEl=f.querySelector('[name=company]');
+    let attr={}; try{attr=JSON.parse(localStorage.getItem('krylia_attr')||'{}');}catch(e){}
     const data={
       name:f.querySelector('[name=name]').value.trim(),
       phone:phoneEl.value.trim(),
@@ -1057,6 +1058,9 @@ function handleForm(formId){
       source:f.dataset.source||'',
       consent:(f.querySelector('[name=consent]')||{}).checked?'yes':'',
       page:location.href,
+      referrer:attr.referrer||document.referrer||'',  // откуда пришёл (первое касание)
+      utm_source:attr.utm_source||'', utm_medium:attr.utm_medium||'', utm_campaign:attr.utm_campaign||'',
+      cid:window.__cid||'',                            // ClientID Метрики → связь с сессией/Директом
       company:hpEl?hpEl.value:'', // honeypot: у людей пусто
       t:Date.now()-startTs        // time-trap: мс с инициализации формы
     };
@@ -1079,6 +1083,24 @@ document.querySelectorAll('form input').forEach(inp=>inp.addEventListener('focus
   if(formOpened)return; formOpened=true;
   try{if(window.ym)ym(103897523,'reachGoal','form_open');}catch(e){}
 }));
+
+/* атрибуция заявки: первое касание (utm/referrer) фиксируем в localStorage при заходе,
+   ClientID Метрики держим в window.__cid — всё это уезжает с заявкой в lead.php/панель */
+(function(){
+  try{
+    var KEY='krylia_attr';
+    if(!localStorage.getItem(KEY)){
+      var q=new URLSearchParams(location.search);
+      localStorage.setItem(KEY,JSON.stringify({
+        utm_source:q.get('utm_source')||'', utm_medium:q.get('utm_medium')||'',
+        utm_campaign:q.get('utm_campaign')||'', utm_term:q.get('utm_term')||'',
+        utm_content:q.get('utm_content')||'', referrer:document.referrer||'',
+        landing:location.href, ts:Date.now()
+      }));
+    }
+  }catch(e){}
+  try{ if(window.ym) ym(103897523,'getClientID',function(id){ window.__cid=id; }); }catch(e){}
+})();
 
 /* раздел сайта по умолчанию для статичных форм */
 document.getElementById('leadForm').dataset.source='Форма внизу — консультация';
