@@ -52,6 +52,25 @@ $source = mb_substr(trim((string)($data['source'] ?? '')), 0, 120);
 $formId = mb_substr(trim((string)($data['form']   ?? '')), 0, 50);
 $page   = mb_substr(trim((string)($data['page']   ?? '')), 0, 300);
 
+// --- ДИАГНОСТИКА: лог каждого POST в файл вне веб-корня (не блокирует, только пишет) ---
+function lead_log($decision, $data) {
+  $ip = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ($_SERVER['REMOTE_ADDR'] ?? '');
+  $rec = [
+    'ts'       => date('c'),
+    'ip'       => $ip,
+    'ua'       => $_SERVER['HTTP_USER_AGENT'] ?? '',
+    'decision' => $decision,                         // honeypot | timetrap | bad_phone | accepted
+    'name'     => (string)($data['name']    ?? ''),
+    'phone'    => (string)($data['phone']   ?? ''),
+    'company'  => (string)($data['company'] ?? ''),  // honeypot-поле (у людей пусто)
+    't'        => $data['t'] ?? '',                  // time-trap, мс с загрузки формы
+    'form'     => (string)($data['form']   ?? ''),
+    'page'     => (string)($data['page']   ?? ''),
+  ];
+  $f = (($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/../lead_log.jsonl');
+  @file_put_contents($f, json_encode($rec, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+}
+
 // --- Антибот ---
 // 1) honeypot: поле "company" скрыто от людей; если заполнено — это бот.
 // 2) time-trap: форма отправлена быстрее MIN_FILL_MS после загрузки — это бот.
@@ -60,7 +79,8 @@ $honeypot = trim((string)($data['company'] ?? ''));
 $elapsed  = isset($data['t']) && is_numeric($data['t']) ? (int)$data['t'] : null;
 $MIN_FILL_MS = 2500;
 if ($honeypot !== '' || ($elapsed !== null && $elapsed < $MIN_FILL_MS)) {
-  // тихо отбрасываем; по желанию можно логировать в файл вне веб-корня
+  lead_log($honeypot !== '' ? 'honeypot' : 'timetrap', $data);
+  // тихо отбрасываем (боту отвечаем «успех», заявку НЕ создаём)
   http_response_code(200);
   echo json_encode(['ok' => true]);
   exit;
@@ -68,10 +88,13 @@ if ($honeypot !== '' || ($elapsed !== null && $elapsed < $MIN_FILL_MS)) {
 
 // простая защита: телефон должен содержать минимум 10 цифр
 if (strlen(preg_replace('/\D/', '', $phone)) < 10) {
+  lead_log('bad_phone', $data);
   http_response_code(400);
   echo json_encode(['ok' => false, 'error' => 'Некорректный телефон']);
   exit;
 }
+
+lead_log('accepted', $data);
 
 $base = "https://{$SUB}.amocrm.ru";
 $headers = ["Authorization: Bearer {$TOKEN}", "Content-Type: application/json"];
