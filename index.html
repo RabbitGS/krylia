@@ -552,6 +552,149 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
   <div class="scroll-cue">Листайте вниз<span class="ln"></span></div>
 </section>
 
+<!-- ============ QUIZ-ПОДБОР ============ -->
+<style>
+:root{--paper:#FBFAF8}
+.qz-wrap{background:linear-gradient(180deg,var(--navy-deep) 0%,var(--navy) 100%);padding:14px 20px 46px}
+.qz-card{max-width:560px;margin:0 auto;background:var(--paper);border-radius:22px;padding:26px 22px 24px;box-shadow:0 34px 70px -34px rgba(0,0,0,.6)}
+.qz-head h2{font-size:23px;font-weight:800;letter-spacing:-.01em;line-height:1.1;text-wrap:balance;color:var(--ink)}
+.qz-head p{color:var(--muted);font-size:14px;line-height:1.5;margin-top:7px}
+.qz-head .clock{color:var(--navy);font-weight:700}
+.qz-prog{margin:20px 0 18px}
+.qz-prog .r{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.qz-prog .lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
+.qz-prog .pct{font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.qz-bar{height:5px;border-radius:4px;background:var(--line);overflow:hidden}
+.qz-bar>i{display:block;height:100%;width:33%;background:linear-gradient(90deg,var(--tan),#cdae82);border-radius:4px;transition:width .45s var(--ease)}
+.qz-panel{animation:qzSwap .36s var(--ease)}
+@keyframes qzSwap{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.qz-q{font-size:19px;font-weight:800;letter-spacing:-.01em;margin-bottom:15px;color:var(--ink);text-wrap:balance}
+.qz-opts{display:flex;flex-direction:column;gap:10px}
+.qz-opt{display:flex;align-items:center;width:100%;text-align:left;padding:16px 17px;border-radius:14px;background:#fff;border:1.5px solid var(--line);font-family:inherit;font-size:15.5px;font-weight:600;color:var(--ink);transition:border-color .2s,transform .1s,background .2s}
+.qz-opt:hover{border-color:var(--tan)}
+.qz-opt:active{transform:scale(.99)}
+.qz-opt .chk{margin-left:auto;width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;transition:.2s}
+.qz-opt.sel{border-color:var(--navy);background:#fbf6ee}
+.qz-opt.sel .chk{background:var(--navy);border-color:var(--navy)}
+.qz-opt.sel .chk::after{content:"";width:6px;height:11px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(45deg) translateY(-1px)}
+.qz-back{margin-top:16px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:inherit;font-size:13.5px;font-weight:700;padding:6px 2px}
+.qz-back:hover{color:var(--ink)}
+.qz-field{margin-bottom:11px}
+.qz-field input{width:100%;padding:15px;border-radius:13px;border:1.5px solid var(--line);font-family:inherit;font-size:16px;background:#fff;color:var(--ink)}
+.qz-field input:focus{outline:none;border-color:var(--navy)}
+.qz-sum{background:#fbf6ee;border:1px solid var(--tan-soft);border-radius:13px;padding:13px 15px;margin-bottom:16px}
+.qz-sum .t{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.qz-sum ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.qz-sum li{font-size:12.5px;font-weight:700;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+.qz-cta{width:100%;padding:17px;border-radius:14px;background:var(--navy);color:#fff;font-family:inherit;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:background .2s,transform .1s;margin-top:4px}
+.qz-cta:hover{background:var(--navy-deep)}
+.qz-cta:active{transform:scale(.99)}
+.qz-cta:disabled{opacity:.6;cursor:default}
+.qz-consent{font-size:11px;color:var(--muted);line-height:1.5;margin-top:11px;text-align:center}
+.qz-consent a{color:var(--muted);text-decoration:underline}
+.qz-err{color:#c0392b;font-size:13px;font-weight:600;margin-top:9px;text-align:center;min-height:1px}
+.qz-trust{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.qz-trust div{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--muted)}
+.qz-trust svg{width:15px;height:15px;color:var(--tan);flex:none}
+@media(max-width:760px){
+  .hero{min-height:auto!important;padding-bottom:22px}
+  .hero-cta{display:none!important}
+  .scroll-cue{display:none!important}
+  .qz-wrap{padding-top:0}
+}
+</style>
+<section class="qz-wrap" id="quiz">
+  <div class="qz-card">
+    <div class="qz-head">
+      <h2>Подберём вашу квартиру</h2>
+      <p>3 вопроса — и менеджер пришлёт подходящие планировки с ценами и расчётом ипотеки. <span class="clock">Займёт 30 секунд.</span></p>
+    </div>
+    <div class="qz-prog">
+      <div class="r"><span class="lbl" id="qzLbl">Шаг 1 из 3</span><span class="pct" id="qzPct">33%</span></div>
+      <div class="qz-bar"><i id="qzFill"></i></div>
+    </div>
+    <div id="qzPanel"></div>
+    <div class="qz-trust">
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg>6 секций сданы и заселены</div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg>монолит-кирпич</div>
+      <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg>закрытый двор и паркинг</div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  const STEPS=[
+    {key:'rooms',q:'Сколько комнат нужно?',opts:['1 комната','2 комнаты','3 комнаты']},
+    {key:'pay',q:'Как планируете покупку?',opts:['Семейная ипотека 3,5%','IT-ипотека','Рассрочка от застройщика','Полная оплата']},
+    {key:'when',q:'Когда хотите заселиться?',opts:['В этом году','К сдаче — 2027','Пока присматриваюсь']},
+  ];
+  const A={};let i=0;const qzStart=Date.now();
+  const panel=document.getElementById('qzPanel');
+  const fill=document.getElementById('qzFill');
+  const lbl=document.getElementById('qzLbl');
+  const pct=document.getElementById('qzPct');
+  function prog(f,l){fill.style.width=Math.round(f*100)+'%';pct.textContent=Math.round(f*100)+'%';lbl.textContent=l;}
+  function step(){
+    const s=STEPS[i];
+    prog((i+1)/(STEPS.length+1),'Шаг '+(i+1)+' из '+STEPS.length);
+    let h='<div class="qz-panel"><div class="qz-q">'+s.q+'</div><div class="qz-opts">';
+    s.opts.forEach((o,x)=>{h+='<button class="qz-opt'+(A[s.key]===o?' sel':'')+'" data-x="'+x+'">'+o+'<span class="chk"></span></button>';});
+    h+='</div>';
+    if(i>0)h+='<button class="qz-back" id="qzBack">‹ Назад</button>';
+    h+='</div>';
+    panel.innerHTML=h;
+    panel.querySelectorAll('.qz-opt').forEach(b=>b.onclick=()=>{
+      A[s.key]=s.opts[b.dataset.x];
+      panel.querySelectorAll('.qz-opt').forEach(e=>e.classList.remove('sel'));
+      b.classList.add('sel');
+      setTimeout(()=>{i++;(i<STEPS.length?step:final)();},230);
+    });
+    const bk=document.getElementById('qzBack');if(bk)bk.onclick=()=>{i--;step();};
+  }
+  function final(){
+    prog(1,'Последний шаг');
+    let chips='';STEPS.forEach(s=>{if(A[s.key])chips+='<li>'+A[s.key]+'</li>';});
+    panel.innerHTML='<div class="qz-panel">'+
+      '<div class="qz-q">Готово! Куда прислать подборку?</div>'+
+      '<div class="qz-sum"><div class="t">Ваш запрос</div><ul>'+chips+'</ul></div>'+
+      '<div class="qz-field"><input id="qzName" type="text" placeholder="Ваше имя" autocomplete="name"></div>'+
+      '<div class="qz-field"><input id="qzPhone" type="tel" inputmode="tel" placeholder="+7 (___) ___-__-__" autocomplete="tel"></div>'+
+      '<button class="qz-cta" id="qzGo">Получить подборку с ценами →</button>'+
+      '<div class="qz-err" id="qzErr"></div>'+
+      '<div class="qz-consent">Нажимая кнопку, вы соглашаетесь с <a href="/privacy" target="_blank" rel="noopener">политикой конфиденциальности</a> и обработкой персональных данных.</div>'+
+      '<button class="qz-back" id="qzBack">‹ Назад</button></div>';
+    document.getElementById('qzBack').onclick=()=>{i=STEPS.length-1;step();};
+    const ph=document.getElementById('qzPhone');
+    ph.oninput=()=>{let d=ph.value.replace(/\D/g,'').replace(/^8/,'7').slice(0,11);if(!d){ph.value='';return;}let r='+7';if(d.length>1)r+=' ('+d.slice(1,4);if(d.length>=4)r+=') '+d.slice(4,7);if(d.length>=7)r+='-'+d.slice(7,9);if(d.length>=9)r+='-'+d.slice(9,11);ph.value=r;};
+    document.getElementById('qzGo').onclick=async ()=>{
+      const err=document.getElementById('qzErr');
+      const btn=document.getElementById('qzGo');
+      const nm=document.getElementById('qzName').value.trim();
+      if(!nm){err.textContent='Как к вам обращаться?';return;}
+      if(ph.value.replace(/\D/g,'').length<11){err.textContent='Введите номер телефона полностью.';return;}
+      err.textContent='';btn.disabled=true;btn.textContent='Отправляем…';
+      let attr={};try{attr=JSON.parse(localStorage.getItem('krylia_attr')||'{}');}catch(e){}
+      const data={
+        name:nm, phone:ph.value.trim(),
+        form:'quizForm',
+        source:STEPS.map(s=>A[s.key]).filter(Boolean).join(' · ').slice(0,110),
+        page:location.href,
+        referrer:attr.referrer||document.referrer||'',
+        utm_source:attr.utm_source||'',utm_medium:attr.utm_medium||'',utm_campaign:attr.utm_campaign||'',
+        cid:window.__cid||'',
+        company:'', t:Date.now()-qzStart
+      };
+      let ok=false;
+      try{const r=await fetch('/lead.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let j={};try{j=await r.json();}catch(e){}ok=r.ok&&j.ok!==false;}catch(e){ok=false;}
+      if(ok){location.href='thankyou.html';return;}
+      btn.disabled=false;btn.textContent='Получить подборку с ценами →';
+      err.textContent='Не удалось отправить. Проверьте номер и попробуйте ещё раз.';
+    };
+  }
+  step();
+})();
+</script>
+
 <!-- ============ STAT STRIP ============ -->
 <section class="strip">
   <div class="wrap strip-grid">
