@@ -743,9 +743,6 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
   <div class="wrap">
     <div class="eyebrow on-dark rv">Выбрать квартиру</div>
     <h2 class="h-sec rv rv-d1">Планировки под<br>ваш сценарий жизни</h2>
-    <div class="tabs rv rv-d2" id="sectionTabs">
-      <button class="tab active" data-sec="all">Все квартиры</button>
-    </div>
     <div class="apt-grid" id="aptGrid"></div>
   </div>
 </section>
@@ -799,6 +796,23 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
     <div class="finish-cta rv">
       <p class="fct-txt">Выбранный формат: <b id="finishChosen">Под ключ</b></p>
       <button class="btn btn-tan" id="finishApply">Оставить заявку на этот формат <span class="arr">→</span></button>
+    </div>
+    <style>
+    .finish-gallery{margin-top:46px}
+    .fg-title{font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-align:center}
+    .fg-hint{font-size:15px;font-weight:700;color:var(--ink);text-align:center;margin:6px 0 20px}
+    .fg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;min-height:4px}
+    .fg-empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:14px;padding:26px;border:1.5px dashed var(--line);border-radius:16px}
+    .fg-item{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;aspect-ratio:16/10;background:var(--navy-deep);border:none;padding:0;display:block;animation:fgIn .45s var(--ease) both}
+    @keyframes fgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    .fg-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s var(--ease)}
+    .fg-item:hover img{transform:scale(1.05)}
+    .fg-item span{position:absolute;left:12px;bottom:12px;background:rgba(30,43,56,.82);color:#fff;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;backdrop-filter:blur(4px)}
+    </style>
+    <div class="finish-gallery rv">
+      <p class="fg-title">Как выглядит квартира</p>
+      <p class="fg-hint" id="fgHint"></p>
+      <div class="fg-grid" id="fgGrid"></div>
     </div>
   </div>
 </section>
@@ -1342,18 +1356,38 @@ const io=new IntersectionObserver(es=>{
 },{threshold:.12});
 document.querySelectorAll('.rv').forEach(el=>io.observe(el));
 
-/* ---- варианты отделки: выбор формата + заявка ---- */
+/* ---- варианты отделки: выбор формата + заявка + фото формата ---- */
 const finishGrid=document.getElementById('finishGrid');
 const finishChosenEl=document.getElementById('finishChosen');
 let chosenFinish='Под ключ';
+const FINISH_PHOTOS={
+  'Базовая отделка':[],
+  'White Box':[{src:'images/finish/wb-1.webp',cap:'White Box'},{src:'images/finish/wb-2.webp',cap:'White Box'}],
+  'Под ключ':[{src:'images/finish/pk-1.webp',cap:'Под ключ'},{src:'images/finish/pk-2.webp',cap:'Под ключ'},{src:'images/finish/pk-3.webp',cap:'Под ключ'}],
+};
+const fgGrid=document.getElementById('fgGrid');
+const fgHint=document.getElementById('fgHint');
+function renderFinishPhotos(name){
+  const list=FINISH_PHOTOS[name]||[];
+  if(!list.length){
+    fgHint.textContent='Формат «'+name+'»';
+    fgGrid.innerHTML='<div class="fg-empty">Фото этого формата появятся позже</div>';
+    return;
+  }
+  fgHint.textContent='Формат «'+name+'»';
+  fgGrid.innerHTML=list.map((p,i)=>'<button class="fg-item" data-i="'+i+'"><img src="'+p.src+'" alt="Квартира — '+p.cap+' в ЖК «Крылья»" loading="lazy"><span>'+p.cap+'</span></button>').join('');
+  fgGrid.querySelectorAll('.fg-item').forEach((it,i)=>it.addEventListener('click',()=>openLightbox(list,i)));
+}
 finishGrid.querySelectorAll('.finish-card').forEach(card=>{
   card.addEventListener('click',()=>{
     finishGrid.querySelectorAll('.finish-card').forEach(c=>c.classList.remove('selected'));
     card.classList.add('selected');
     chosenFinish=card.dataset.finish;
     finishChosenEl.textContent=chosenFinish;
+    renderFinishPhotos(chosenFinish);
   });
 });
+renderFinishPhotos(chosenFinish);   // стартовое фото — «Под ключ» (выбран по умолчанию)
 document.getElementById('finishApply').onclick=()=>{
   document.getElementById('finishModalTier').textContent=chosenFinish;
   const ff=document.getElementById('finishForm');
@@ -1366,7 +1400,7 @@ document.getElementById('finishApply').onclick=()=>{
 const lb=document.getElementById('lightbox'),lbImg=document.getElementById('lbImg'),lbCount=document.getElementById('lbCount');
 const lbPrev=document.getElementById('lbPrev'),lbNext=document.getElementById('lbNext');
 let lbList=[],lbIdx=0;
-function lbShow(){lbImg.src=lbList[lbIdx];const multi=lbList.length>1;lbCount.textContent=multi?(lbIdx+1)+' / '+lbList.length:'';lbPrev.style.display=lbNext.style.display=multi?'flex':'none';}
+function lbShow(){const cur=lbList[lbIdx];const src=typeof cur==='string'?cur:cur.src;const cap=typeof cur==='string'?'':(cur.cap||'');lbImg.src=src;const multi=lbList.length>1;lbCount.textContent=(cap?cap+(multi?'  ·  ':''):'')+(multi?(lbIdx+1)+' / '+lbList.length:'');lbPrev.style.display=lbNext.style.display=multi?'flex':'none';}
 function openLightbox(list,idx){lbList=list;lbIdx=idx||0;lbShow();lb.classList.add('open');lb.setAttribute('aria-hidden','false');}
 function lbHide(){lb.classList.remove('open');lb.setAttribute('aria-hidden','true');}
 function lbStep(d){lbIdx=(lbIdx+d+lbList.length)%lbList.length;lbShow();}
@@ -1382,7 +1416,14 @@ const gSrcs=gItems.map(it=>it.querySelector('img').src);
 gItems.forEach((it,i)=>it.addEventListener('click',()=>openLightbox(gSrcs,i)));
 
 /* фотоотчёт со стройки — фото поверх сайта */
-const reportPhotos=Array.from({length:10},(_,i)=>'images/progress/ph'+(i+1)+'.jpg');
+const reportPhotos=[
+  {src:'images/progress/pr-2026-01.webp', cap:'Январь 2026'},
+  {src:'images/progress/pr-2026-03a.webp',cap:'Март 2026'},
+  {src:'images/progress/pr-2026-03b.webp',cap:'Март 2026'},
+  {src:'images/progress/pr-2026-05.webp', cap:'Май 2026'},
+  {src:'images/progress/pr-2026-06a.webp',cap:'Июнь 2026'},
+  {src:'images/progress/pr-2026-06b.webp',cap:'Июнь 2026'},
+];
 document.getElementById('photoReportBtn').onclick=()=>openLightbox(reportPhotos,0);
 
 /* ---- cookie consent banner (мягкий режим: Метрика грузится сразу, баннер информирует) ---- */
