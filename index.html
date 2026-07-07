@@ -485,6 +485,36 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 <script type="text/javascript">window._ab_id_=171087</script>
 <script src="https://cdn.botfaqtor.ru/one.js"></script>
 <!-- /BotFaqtor -->
+<!-- Yandex SmartCaptcha (невидимая). Один общий виджет на все формы; токен добавляется к заявке и проверяется в lead.php. -->
+<script>
+(function(){
+  var CAP_SITEKEY='ysc1_nhhbO4pU3Bm2qPojc36jM1rzb7bZzTAijkjA1tkKf1a146c3';
+  var widgetId=null, pending=null;
+  window.initSmartCaptcha=function(){
+    if(!window.smartCaptcha) return;
+    var c=document.getElementById('smartcaptcha-container');
+    if(!c){c=document.createElement('div');c.id='smartcaptcha-container';(document.body||document.documentElement).appendChild(c);}
+    try{
+      widgetId=window.smartCaptcha.render('smartcaptcha-container',{
+        sitekey:CAP_SITEKEY, invisible:true, hl:'ru',
+        callback:function(token){ var p=pending; pending=null; try{window.smartCaptcha.reset(widgetId);}catch(e){} if(p)p(token); }
+      });
+    }catch(e){ widgetId=null; }
+  };
+  // Promise с одноразовым токеном. Fail-open: капча не загрузилась/зависла (8с) → пустой токен, живого НЕ блокируем.
+  window.getCaptchaToken=function(){
+    return new Promise(function(resolve){
+      if(widgetId===null || !window.smartCaptcha){ resolve(''); return; }
+      var done=false;
+      var to=setTimeout(function(){ if(!done){done=true;pending=null;resolve('');} },8000);
+      pending=function(token){ if(done)return; done=true; clearTimeout(to); resolve(token||''); };
+      try{ window.smartCaptcha.execute(widgetId); }catch(e){ if(!done){done=true;clearTimeout(to);pending=null;resolve('');} }
+    });
+  };
+})();
+</script>
+<script src="https://smartcaptcha.cloud.yandex.ru/captcha.js?render=onload&onload=initSmartCaptcha" defer></script>
+<!-- /Yandex SmartCaptcha -->
 </head>
 <body>
 <div class="ios-safe-top" aria-hidden="true"></div>
@@ -684,6 +714,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
         cid:window.__cid||'',
         company:'', t:Date.now()-qzStart
       };
+      try{ data.smartToken=await window.getCaptchaToken(); }catch(e){ data.smartToken=''; } // невидимая SmartCaptcha
       let ok=false;
       try{const r=await fetch('/lead.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});let j={};try{j=await r.json();}catch(e){}ok=r.ok&&j.ok!==false;}catch(e){ok=false;}
       if(ok){location.href='thankyou.html';return;}
@@ -1227,6 +1258,7 @@ function handleForm(formId){
     };
     const orig=btn?btn.textContent:'';
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
+    try{ data.smartToken=await window.getCaptchaToken(); }catch(e){ data.smartToken=''; } // невидимая SmartCaptcha
     const ok=await sendLead(data);
     if(ok){window.location.href='thankyou.html';return;} // «Спасибо» → цель Метрики
     if(btn){btn.disabled=false;btn.textContent=orig;}

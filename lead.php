@@ -5,10 +5,12 @@
 // Доступы НЕ в коде — читаются из файла lead_secret.php, который лежит НА УРОВЕНЬ ВЫШЕ
 // веб-корня (чтобы его нельзя было скачать по HTTP). Формат lead_secret.php:
 //   <?php return [
-//     'subdomain'   => 'xxxxx',     // то, что до .amocrm.ru
-//     'token'       => 'долгий_токен',
-//     'pipeline_id' => null,        // необязательно
-//     'status_id'   => null,        // необязательно
+//     'subdomain'       => 'xxxxx',     // то, что до .amocrm.ru
+//     'token'           => 'долгий_токен',
+//     'pipeline_id'     => null,        // необязательно
+//     'status_id'       => null,        // необязательно
+//     'captcha_secret'  => 'ysc2_...',  // серверный ключ Yandex SmartCaptcha (необязательно)
+//     'captcha_enforce' => false,       // false = только логировать вердикт капчи; true = отбрасывать заявки без валидного токена
 //   ];
 //
 // Пока lead_secret.php нет — функция вернёт «не настроено» (это норма до интеграции amoCRM).
@@ -76,9 +78,28 @@ function lead_log($decision, $data) {
     'utm_medium'   => (string)($data['utm_medium']   ?? ''),
     'utm_campaign' => (string)($data['utm_campaign'] ?? ''),
     'cid'          => (string)($data['cid']          ?? ''),
+    'cap'          => (string)($data['cap']          ?? ''),  // вердикт SmartCaptcha: ok|failed|missing|error|off
   ];
   $f = (($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/../lead_log.jsonl');
   @file_put_contents($f, json_encode($rec, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+}
+
+// --- Проверка токена Yandex SmartCaptcha на сервере ---
+// Возвращает: ok (человек) | failed (не прошёл) | missing (токена нет) | error (сервис недоступен).
+function captcha_validate($secret, $token, $ip) {
+  if ($token === '') return 'missing';
+  $post = http_build_query(['secret' => $secret, 'token' => $token, 'ip' => $ip]);
+  $ctx = stream_context_create(['http' => [
+    'method'        => 'POST',
+    'header'        => "Content-Type: application/x-www-form-urlencoded\r\n",
+    'content'       => $post,
+    'timeout'       => 4,
+    'ignore_errors' => true,
+  ]]);
+  $resp = @file_get_contents('https://smartcaptcha.cloud.yandex.ru/validate', false, $ctx);
+  if ($resp === false) return 'error';
+  $j = json_decode($resp, true);
+  return (isset($j['status']) && $j['status'] === 'ok') ? 'ok' : 'failed';
 }
 
 // --- Антибот ---
@@ -102,6 +123,25 @@ if (strlen(preg_replace('/\D/', '', $phone)) < 10) {
   http_response_code(400);
   echo json_encode(['ok' => false, 'error' => 'Некорректный телефон']);
   exit;
+}
+
+// 3) SmartCaptcha: проверяем токен ТОЛЬКО у прошедших honeypot/time-trap/телефон (не дёргаем Яндекс зря).
+//    Режим наблюдения (captcha_enforce=false) — вердикт только пишем в лог, заявку НЕ отбрасываем.
+//    Боевой режим (captcha_enforce=true) — отбрасываем без валидного токена (failed/missing), как honeypot.
+//    'error' (Яндекс недоступен) пропускаем всегда — не терять живых из-за сбоя сервиса капчи.
+$CAP_SECRET  = (string)($cfg['captcha_secret'] ?? '');
+$CAP_ENFORCE = !empty($cfg['captcha_enforce']);
+$data['cap'] = 'off';
+if ($CAP_SECRET !== '') {
+  $capIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? ($_SERVER['REMOTE_ADDR'] ?? '');
+  $data['cap'] = captcha_validate($CAP_SECRET, (string)($data['smartToken'] ?? ''), $capIp);
+  if ($CAP_ENFORCE && ($data['cap'] === 'failed' || $data['cap'] === 'missing')) {
+    lead_log('captcha', $data);
+    // тихо отбрасываем (боту отвечаем «успех», заявку НЕ создаём)
+    http_response_code(200);
+    echo json_encode(['ok' => true]);
+    exit;
+  }
 }
 
 lead_log('accepted', $data);
