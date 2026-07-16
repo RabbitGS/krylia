@@ -1,1 +1,13 @@
 lead_secret.php
+
+# Живые данные панели — существуют только на сервере, git их не перезаписывает
+panel/catalog.json
+panel/catalog.bak.json
+panel/catalog.pending.json
+panel/floor_zones.json
+panel/floor_zones.bak.json
+panel/genplan_pins.json
+panel/site_config.json
+panel/*.bak-*
+flats/*.bak-*
+*.bak-*

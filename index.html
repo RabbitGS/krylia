@@ -111,6 +111,8 @@ header:not(.scrolled) .nav-links a::after{background:#fff}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:28px}
 .logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:23px;letter-spacing:-.03em}
 .logo svg{width:34px;height:34px}
+.logo-ic{height:36px;width:auto;display:block}
+.foot-logo .logo-ic{height:40px}
 .logo .sub{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--navy);display:block;line-height:1;margin-top:3px}
 .nav-links{display:flex;gap:30px;align-items:center}
 .nav-links a{font-size:15px;font-weight:600;position:relative;padding:4px 0;transition:color .25s}
@@ -187,6 +189,7 @@ header:not(.scrolled) .nav-links a::after{background:#fff}
 .apt-plan svg{width:78%;height:78%;opacity:.85}
 .apt-plan img{width:100%;height:100%;object-fit:contain;padding:12px}
 .apt-tagstatus{position:absolute;top:12px;left:12px;background:var(--tan);color:var(--ink);font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px}
+.apt-tagstatus.is-promo{background:#8e44ad;color:#fff}
 .apt-body{padding:20px}
 .apt-body h3{font-size:19px;margin-bottom:12px}
 .apt-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
@@ -490,6 +493,9 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 (function(){
   var CAP_SITEKEY='ysc1_nhhbO4pU3Bm2qPojc36jM1rzb7bZzTAijkjA1tkKf1a146c3';
   var widgetId=null, pending=null;
+  // Видимый виджет ТОЛЬКО для modalForm (канал ботов): тот же ключ, invisible:false.
+  // Токен появляется лишь после клика по «Я не робот» → бот без взаимодействия остаётся без токена.
+  var modalWidgetId=null, modalToken='';
   window.initSmartCaptcha=function(){
     if(!window.smartCaptcha) return;
     var c=document.getElementById('smartcaptcha-container');
@@ -500,7 +506,19 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
         callback:function(token){ var p=pending; pending=null; try{window.smartCaptcha.reset(widgetId);}catch(e){} if(p)p(token); }
       });
     }catch(e){ widgetId=null; }
+    try{
+      var mc=document.getElementById('smartcaptcha-modal');
+      if(mc){
+        modalWidgetId=window.smartCaptcha.render('smartcaptcha-modal',{
+          sitekey:CAP_SITEKEY, invisible:false, hl:'ru',
+          callback:function(token){ modalToken=token||''; }
+        });
+      }
+    }catch(e){ modalWidgetId=null; }
   };
+  // Синхронно вернуть токен видимой капчи modalForm (пусто, если пользователь не прошёл).
+  window.getModalCaptchaToken=function(){ return modalToken; };
+  window.resetModalCaptcha=function(){ modalToken=''; try{ if(modalWidgetId!==null) window.smartCaptcha.reset(modalWidgetId); }catch(e){} };
   // Promise с одноразовым токеном. Fail-open: капча не загрузилась/зависла (8с) → пустой токен, живого НЕ блокируем.
   window.getCaptchaToken=function(){
     return new Promise(function(resolve){
@@ -523,7 +541,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
 <header id="hdr">
   <div class="wrap nav">
     <a href="#" class="logo" aria-label="ЖК Крылья">
-      <svg viewBox="0 0 40 40" fill="none"><path d="M4 26 C12 10 20 18 36 8 C28 24 18 22 4 32 Z" fill="#283747"/><path d="M6 30 C14 18 22 24 34 14" stroke="#E3C9A4" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <img class="logo-ic" src="images/logo-wings.webp?v=1" alt="Крылья" width="90" height="36">
       <span>Крылья<span class="sub">на Планерной</span></span>
     </a>
     <nav class="nav-links">
@@ -569,13 +587,13 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <p class="hero-sub">Жилой комплекс премиум-класса на ул. Планерной в Твери</p>
     </div>
     <div class="hero-cta rv in rv-d1">
-      <a href="#apartments" class="btn btn-tan">Выбрать квартиру <span class="arr">→</span></a>
+      <a href="/flats/" class="btn btn-tan">Выбрать квартиру <span class="arr">→</span></a>
       <button class="btn btn-outline-light" data-modal data-source="Главный экран — Узнать цены">Узнать цены и условия</button>
     </div>
     <div class="hero-badges rv in rv-d2">
       <span class="pill on-photo">от 5,1 млн ₽</span>
       <span class="pill on-photo">📍 10 минут до центра</span>
-      <span class="pill on-photo">Сдача — III квартал 2027</span>
+      <span class="pill on-photo">Сдача — IV квартал 2027</span>
       <span class="pill on-photo">Монолит-кирпич</span>
     </div>
   </div>
@@ -775,6 +793,10 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
     <div class="eyebrow on-dark rv">Выбрать квартиру</div>
     <h2 class="h-sec rv rv-d1">Планировки под<br>ваш сценарий жизни</h2>
     <div class="apt-grid" id="aptGrid"></div>
+    <div style="text-align:center;margin-top:40px">
+      <a href="/flats/" class="btn btn-tan btn-wide">Смотреть все квартиры на шахматке <span class="arr">→</span></a>
+      <p style="margin-top:14px;font-size:13px;color:var(--muted-navy)">Интерактивный выбор: генплан, фильтры, шахматка по этажам, статусы и цены в реальном времени.</p>
+    </div>
   </div>
 </section>
 
@@ -960,7 +982,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       </div>
       <div class="tl-card rv rv-d3">
         <div class="tl-img"><span class="tl-stage">2027</span><img src="images/site/tl4.webp?v=2" alt="Готовый комплекс ЖК «Крылья» после ввода в эксплуатацию" loading="lazy"></div>
-        <div class="tl-body"><b>Ввод в эксплуатацию</b><span>III квартал 2027 (план)</span></div>
+        <div class="tl-body"><b>Ввод в эксплуатацию</b><span>IV квартал 2027 (план)</span></div>
       </div>
     </div>
     <div class="prog-banner rv">
@@ -1075,7 +1097,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
     <div class="foot-top">
       <div>
         <div class="foot-logo">
-          <svg viewBox="0 0 40 40" fill="none"><path d="M4 26 C12 10 20 18 36 8 C28 24 18 22 4 32 Z" fill="#E3C9A4"/><path d="M6 30 C14 18 22 24 34 14" stroke="#283747" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+          <img class="logo-ic" src="images/logo-wings.webp?v=1" alt="Крылья" width="100" height="40">
           Крылья
         </div>
         <p class="foot-about">Жилой комплекс на ул. Планерной в Твери. Современные планировки, панорамный свет и архитектура, в которой хочется жить.</p>
@@ -1118,6 +1140,7 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
       <input class="inp" type="text" name="name" placeholder="Ваше имя" required>
       <input class="inp" type="tel" name="phone" placeholder="+7 (___) ___-__-__" required>
       <input class="hp-field" type="text" name="company" tabindex="-1" autocomplete="off" aria-hidden="true" placeholder="">
+      <div id="smartcaptcha-modal" style="margin:12px 0;min-height:82px"></div>
       <button class="btn btn-dark btn-wide" type="submit">Жду звонка</button>
       <label class="consent consent-check"><input type="checkbox" name="consent" required><span>Я даю <a href="/consent" target="_blank" rel="noopener">согласие на обработку персональных данных</a> и принимаю <a href="/privacy" target="_blank" rel="noopener">политику конфиденциальности</a>.</span></label>
     </form>
@@ -1258,10 +1281,19 @@ function handleForm(formId){
     };
     const orig=btn?btn.textContent:'';
     if(btn){btn.disabled=true;btn.textContent='Отправляем…';}
-    try{ data.smartToken=await window.getCaptchaToken(); }catch(e){ data.smartToken=''; } // невидимая SmartCaptcha
+    try{
+      if(formId==='modalForm'){
+        // modalForm — видимая капча: токен обязателен (без клика по «Я не робот» заявку не шлём)
+        data.smartToken=window.getModalCaptchaToken?window.getModalCaptchaToken():'';
+        if(!data.smartToken){ if(btn){btn.disabled=false;btn.textContent=orig;} showErr('Подтвердите, что вы не робот (галочка над кнопкой).'); return; }
+      } else {
+        data.smartToken=await window.getCaptchaToken(); // невидимая SmartCaptcha
+      }
+    }catch(e){ data.smartToken=''; }
     const ok=await sendLead(data);
     if(ok){window.location.href='thankyou.html';return;} // «Спасибо» → цель Метрики
     if(btn){btn.disabled=false;btn.textContent=orig;}
+    if(formId==='modalForm' && window.resetModalCaptcha){ window.resetModalCaptcha(); } // токен одноразовый — пройти заново
     showErr('Не удалось отправить заявку. Проверьте номер и попробуйте ещё раз.');
   });
 }
@@ -1318,8 +1350,10 @@ document.querySelectorAll('input[type=tel]').forEach(inp=>{
 
 /* ---- apartments data + render ---- */
 const apartments=[
+  {type:'1-комнатная',area:'41,3 м²',price:'5 084 820 ₽',status:'В продаже',img:'images/plans/p_1k_413.webp?v=2'},
   {type:'1-комнатная',area:'44,3 м²',price:'5 452 590 ₽',status:'В продаже',img:'images/plans/p_1k_443.webp?v=2'},
   {type:'1-комнатная',area:'45,3 м²',price:'5 581 740 ₽',status:'Хит',img:'images/plans/p_1k_453.webp?v=2'},
+  {type:'2-комнатная',area:'63,5 м²',price:'7 567 210 ₽',status:'В продаже',img:'images/plans/p_2k_635.webp?v=2'},
   {type:'2-комнатная',area:'64,8 м²',price:'7 718 340 ₽',status:'В продаже',img:'images/plans/p_2k_648.webp?v=2'},
   {type:'2-комнатная',area:'72,5 м²',price:'8 629 880 ₽',status:'В продаже',img:'images/plans/p_2k_725.webp?v=2'},
   {type:'3-комнатная',area:'90,0 м²',price:'10 393 700 ₽',status:'В продаже',img:'images/plans/p_3k_90.webp?v=2'},
@@ -1329,7 +1363,7 @@ const grid=document.getElementById('aptGrid');
 function renderApts(){
   grid.innerHTML=apartments.map((a,i)=>`
     <div class="apt-card" data-i="${i}">
-      <div class="apt-plan"><img src="${a.img}" alt="Планировка ${a.type} ${a.area}" loading="lazy"><span class="apt-tagstatus">${a.status}</span></div>
+      <div class="apt-plan"><img src="${a.img}" alt="Планировка ${a.type} ${a.area}" loading="lazy"><span class="apt-tagstatus${a.status==='Акция'?' is-promo':''}">${a.status}</span></div>
       <div class="apt-body">
         <h3>${a.type}</h3>
         <div class="apt-meta"><span class="pill on-navy">${a.area}</span></div>
@@ -1343,6 +1377,31 @@ function renderApts(){
 }
 renderApts();
 
+/* ---- живые статусы/цены из панели (акция, актуальная цена) ----
+   Подтягиваем из того же widget.php, что и витрина-шахматка: один источник.
+   Матч по комнатности + ближайшей площади. Fallback: не ответил — остаются статичные данные. */
+const APT_FEED='/panel/widget.php?key=16cbc6dc356953e1f06ca3a832736f79';
+fetch(APT_FEED).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d||!Array.isArray(d.flats))return;
+  const flats=d.flats.filter(f=>!f.nodata);
+  let changed=false;
+  apartments.forEach(a=>{
+    const rooms=parseInt(a.type,10);
+    const area=parseFloat(String(a.area).replace(/[^\d,]/g,'').replace(',','.'));
+    // кандидаты по комнатности, затем ТОЛЬКО ближайшая по площади планировка:
+    // иначе карточка «44,3» цепляет и 44,33 (п7), и 44,13 (п10) — цены расходятся с шахматкой
+    const cand=flats.filter(f=>f.rooms===rooms&&Math.abs((+f.area||0)-area)<1.0);
+    if(!cand.length)return;
+    const best=Math.min(...cand.map(f=>Math.abs((+f.area||0)-area)));
+    const same=cand.filter(f=>Math.abs((+f.area||0)-area)-best<0.001);
+    const avail=same.filter(f=>f.status==='free'||f.status==='promo');
+    if(same.some(f=>f.status==='promo')){a.status='Акция';changed=true;}
+    const pool=(avail.length?avail:same).map(f=>+f.price).filter(Boolean);
+    if(pool.length){const np=Math.min(...pool).toLocaleString('ru-RU')+' ₽';if(np!==a.price){a.price=np;changed=true;}}
+  });
+  if(changed)renderApts();
+}).catch(()=>{});
+
 /* ---- модалка квартиры: планировка + форма ---- */
 const aptModal=document.getElementById('aptModal');
 function openApt(a){
@@ -1351,7 +1410,7 @@ function openApt(a){
   document.getElementById('aptModalTitle').textContent=a.type;
   document.getElementById('aptModalArea').textContent=a.area;
   document.getElementById('aptModalPrice').textContent=a.price;
-  document.getElementById('aptModalStatus').textContent=a.status;
+  var _st=document.getElementById('aptModalStatus'); _st.textContent=a.status; _st.classList.toggle('is-promo',a.status==='Акция');
   document.getElementById('aptForm').dataset.apt=a.type+', '+a.area+', '+a.price;
   aptModal.classList.add('open');
 }

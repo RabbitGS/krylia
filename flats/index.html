@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ЖК «Крылья» — выбор квартиры</title>
+  <link rel="stylesheet" href="shahmatka.css?v=24">
+  <style>
+    :root { --navy:#283747; --navy-deep:#1E2B38; --tan:#E3C9A4; --ink:#1b2732; }
+    html, body { overflow-x: hidden; }
+    body { margin: 0; background: #eef2f6; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+    /* брендовая шапка «проваливания» в шахматку */
+    .fx-head { position: sticky; top: 0; z-index: 50; background: var(--navy-deep); color: #fff;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 12px 20px; box-shadow: 0 2px 14px rgba(0,0,0,.18); }
+    .fx-logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 21px; letter-spacing: -.03em;
+      color: #fff; text-decoration: none; }
+    .fx-logo:hover { color: #fff; }
+    .fx-logo img { height: 34px; width: auto; display: block; }
+    .fx-logo .sub { font-size: 10.5px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+      color: rgba(255,255,255,.82); display: block; line-height: 1; margin-top: 3px; }
+    .fx-back { display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+      background: var(--tan); color: var(--ink); font-weight: 700; font-size: 14px;
+      padding: 9px 16px; border-radius: 999px; white-space: nowrap; transition: .2s; }
+    .fx-back:hover { filter: brightness(1.06); }
+    .page { max-width: 1180px; margin: 24px auto; padding: 0 18px; }
+    @media (max-width: 600px) {
+      .fx-logo { font-size: 18px; } .fx-logo img { height: 28px; }
+      .fx-back { padding: 8px 12px; font-size: 13px; } .fx-logo .sub { display: none; }
+    }
+    /* модалка заявки */
+    .lf-ov { position: fixed; inset: 0; background: rgba(20,30,40,.55); backdrop-filter: blur(3px);
+      display: none; align-items: center; justify-content: center; z-index: 100; padding: 18px; }
+    .lf-ov.open { display: flex; }
+    .lf { background: #fff; border-radius: 18px; width: min(440px, 100%); padding: 26px 24px 22px;
+      box-shadow: 0 24px 70px rgba(0,0,0,.3); position: relative; }
+    .lf h3 { margin: 0 0 4px; font-size: 21px; color: var(--ink); }
+    .lf p.sub { margin: 0 0 18px; font-size: 14px; color: #6b7785; }
+    .lf label { display: block; font-size: 13px; color: #56606b; margin: 12px 0 5px; font-weight: 600; }
+    .lf input[type=text], .lf input[type=tel] { width: 100%; box-sizing: border-box; padding: 12px 14px;
+      border: 1px solid #d7dee6; border-radius: 11px; font-size: 15px; outline: none; transition: .2s; }
+    .lf input:focus { border-color: var(--navy); }
+    .lf .cons { display: flex; gap: 9px; align-items: flex-start; margin: 15px 0 4px; font-size: 12px; color: #6b7785; line-height: 1.5; }
+    .lf .cons input { margin-top: 2px; flex: none; }
+    .lf .cons a { color: var(--navy); }
+    .lf .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .lf button.submit { margin-top: 16px; width: 100%; padding: 14px; border: 0; border-radius: 12px;
+      background: var(--navy); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: .2s; }
+    .lf button.submit:hover { background: var(--navy-deep); }
+    .lf button.submit:disabled { opacity: .55; cursor: default; }
+    .lf .close { position: absolute; top: 12px; right: 14px; border: 0; background: none; font-size: 26px;
+      line-height: 1; color: #97a2ad; cursor: pointer; }
+    .lf .apt { background: #f4f7fa; border-radius: 11px; padding: 11px 14px; font-size: 14px; color: var(--ink); margin-bottom: 4px; }
+    .lf .ok { text-align: center; padding: 18px 0 6px; }
+    .lf .ok b { display: block; font-size: 19px; color: var(--ink); margin-bottom: 6px; }
+    .lf .ok span { font-size: 14px; color: #6b7785; }
+  </style>
+</head>
+<body>
+  <header class="fx-head">
+    <a class="fx-logo" href="/" aria-label="ЖК Крылья — на главную">
+      <img src="/images/logo-wings.webp?v=1" alt="Крылья">
+      <span>Крылья<span class="sub">на Планерной</span></span>
+    </a>
+    <a class="fx-back" href="/">← Вернуться на сайт</a>
+  </header>
+
+  <div class="page"><div id="shahmatka"></div></div>
+
+  <!-- модалка заявки -->
+  <div class="lf-ov" id="leadOv">
+    <form class="lf" id="leadForm" novalidate>
+      <button type="button" class="close" id="leadClose" aria-label="Закрыть">×</button>
+      <div id="leadBody">
+        <h3>Оставить заявку</h3>
+        <p class="sub">Менеджер свяжется с вами и ответит на вопросы по квартире.</p>
+        <div class="apt" id="leadApt" style="display:none"></div>
+        <label>Ваше имя</label>
+        <input type="text" name="name" id="leadName" placeholder="Как к вам обращаться" autocomplete="name">
+        <label>Телефон</label>
+        <input type="tel" name="phone" id="leadPhone" placeholder="+7 (___) ___-__-__" autocomplete="tel" inputmode="tel">
+        <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <label class="cons"><input type="checkbox" id="leadConsent" checked>
+          <span>Согласен на обработку персональных данных в соответствии с
+          <a href="/privacy" target="_blank">Политикой</a> и
+          <a href="/consent" target="_blank">Согласием</a>.</span></label>
+        <button type="submit" class="submit" id="leadSubmit">Отправить заявку</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="shahmatka.js?v=24"></script>
+  <script>
+    var LEAD_ENDPOINT = '/lead.php';
+    var ov = document.getElementById('leadOv'),
+        form = document.getElementById('leadForm'),
+        bodyEl = document.getElementById('leadBody'),
+        aptEl = document.getElementById('leadApt'),
+        startTs = 0, curFlat = null;
+
+    function fmtApt(f){
+      if(!f) return '';
+      var parts = ['кв. №' + f.number];
+      if(f.area) parts.push(f.area + ' м²');
+      if(f.price) parts.push(f.price.toLocaleString('ru-RU') + ' ₽');
+      return parts.join(', ');
+    }
+    function openLead(flat){
+      curFlat = flat || null;
+      var txt = fmtApt(flat);
+      if(txt){ aptEl.textContent = txt; aptEl.style.display = 'block'; } else { aptEl.style.display = 'none'; }
+      startTs = Date.now();
+      ov.classList.add('open');
+      setTimeout(function(){ document.getElementById('leadName').focus(); }, 60);
+    }
+    function closeLead(){ ov.classList.remove('open'); }
+    document.getElementById('leadClose').addEventListener('click', closeLead);
+    ov.addEventListener('click', function(e){ if(e.target === ov) closeLead(); });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeLead(); });
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var name = document.getElementById('leadName').value.trim();
+      var phone = document.getElementById('leadPhone').value.trim();
+      var consent = document.getElementById('leadConsent').checked;
+      var company = form.querySelector('[name=company]').value;
+      if(phone.replace(/\D/g,'').length < 10){ alert('Укажите корректный телефон'); return; }
+      if(!consent){ alert('Отметьте согласие на обработку данных'); return; }
+      var btn = document.getElementById('leadSubmit'); btn.disabled = true; btn.textContent = 'Отправляем…';
+      fetch(LEAD_ENDPOINT, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          name: name, phone: phone, company: company,
+          t: Date.now() - startTs,
+          apt: fmtApt(curFlat),
+          source: 'Шахматка', form: 'shahmatkaForm',
+          page: location.pathname,
+          referrer: document.referrer || ''
+        })
+      }).then(function(r){ return r.json().catch(function(){ return {ok:false}; }); })
+        .then(function(res){
+          if(res && res.ok){
+            bodyEl.innerHTML = '<div class="ok"><b>Заявка отправлена</b><span>Мы свяжемся с вами в ближайшее время.</span></div>';
+            setTimeout(closeLead, 2600);
+          } else {
+            btn.disabled = false; btn.textContent = 'Отправить заявку';
+            alert((res && res.error) ? res.error : 'Не удалось отправить. Попробуйте ещё раз или позвоните нам.');
+          }
+        }).catch(function(){
+          btn.disabled = false; btn.textContent = 'Отправить заявку';
+          alert('Сеть недоступна. Попробуйте ещё раз.');
+        });
+    });
+
+    Shahmatka.init({
+      container: '#shahmatka',
+      dataUrl: '/panel/widget.php?key=16cbc6dc356953e1f06ca3a832736f79',
+      theme: 'light',
+      accent: '#c8a15a',
+      onLead: function(flat){ openLead(flat); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Пробрасываем заголовок Authorization в PHP (Apache+CGI/FastCGI его теряет) —
+# иначе Basic-auth панели не работает.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
