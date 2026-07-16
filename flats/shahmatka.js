@@ -10,10 +10,16 @@
 (function (global) {
   'use strict';
 
-  var money = function (n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
+  var money = function (n) { n = +n; if (!isFinite(n)) return '—'; return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
   var roomsLabel = function (r) { return r === 0 ? 'Студия' : r + '-комн.'; };
   var roomsShort = function (r) { return r === 0 ? 'СТ' : r + 'к'; };
   function uniq(a) { return a.filter(function (v, i, s) { return s.indexOf(v) === i; }); }
+  // минимальная существующая цена по списку квартир: у проданных, заполненных
+  // вручную (без фида), цены нет — такие в расчёт не берём
+  function minPrice(list) {
+    var v = list.map(function (x) { return +x.price; }).filter(function (p) { return isFinite(p) && p > 0; });
+    return v.length ? Math.min.apply(0, v) : 0;
+  }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
   // «5–6, 8, 11» из списка этажей
@@ -194,7 +200,8 @@
       // цены «от» по комнатности — для тултипа при наведении
       var byRooms = {};
       freeFlats.forEach(function (f) {
-        if (byRooms[f.rooms] == null || f.price < byRooms[f.rooms]) byRooms[f.rooms] = f.price;
+        var bp = +f.price;
+        if (isFinite(bp) && bp > 0 && (byRooms[f.rooms] == null || bp < byRooms[f.rooms])) byRooms[f.rooms] = bp;
       });
       var roomsSorted = Object.keys(byRooms).map(Number).sort(function (a, b) { return a - b; });
       var tipRows = soldout
@@ -265,8 +272,12 @@
     // Шаги целочисленные (площадь — в целых м²): дробный шаг + float ломают
     // достижимость max и дают хвост нулей в значении.
     function rng(key, step) {
-      var lo = Math.min.apply(0, real.map(function (f) { return f[key]; }));
-      var hi = Math.max.apply(0, real.map(function (f) { return f[key]; }));
+      // у проданных, заполненных вручную (без фида), цены нет — NaN в границы не пускаем,
+      // иначе ползунок цены схлопывается в 0–0 и режет все квартиры
+      var vals = real.map(function (f) { return +f[key]; }).filter(function (v) { return isFinite(v) && v > 0; });
+      if (!vals.length) vals = [0, step];
+      var lo = Math.min.apply(0, vals);
+      var hi = Math.max.apply(0, vals);
       return [Math.floor(lo / step) * step, Math.ceil((hi - 1e-9) / step) * step];
     }
     var bounds = { price: rng('price', 250000), area: rng('area', 1), floor: rng('floor', 1) };
@@ -408,7 +419,7 @@
       if (!includeSold && x.status === 'sold') return false;
       if (f.house !== 'all' && x.building !== f.house) return false;
       if (Object.keys(f.rooms).length && !f.rooms[x.rooms]) return false;
-      if (x.price < f.price[0] || x.price > f.price[1]) return false;
+      if (isFinite(+x.price) && +x.price > 0 && (x.price < f.price[0] || x.price > f.price[1])) return false;
       if (x.area < f.area[0] || x.area > f.area[1]) return false;
       if (x.floor < f.floor[0] || x.floor > f.floor[1]) return false;
       if (f.feature && (x.features || []).indexOf(f.feature) < 0) return false;
@@ -440,7 +451,7 @@
     var sort = this.f.sort;
     keys.sort(function (ka, kb) {
       var ga = groups[ka], gb = groups[kb];
-      var pa = Math.min.apply(0, ga.map(function (x) { return x.price; })), pb = Math.min.apply(0, gb.map(function (x) { return x.price; }));
+      var pa = minPrice(ga), pb = minPrice(gb);
       if (sort === 'price-asc') return pa - pb;
       if (sort === 'price-desc') return pb - pa;
       if (sort === 'area-asc') return ga[0].area - gb[0].area;
@@ -459,7 +470,7 @@
     res.innerHTML = '<div class="shm__cards">' + keys.map(function (k) {
       var g = groups[k], one = g[0];
       var bld = self.buildingById(one.building);
-      var minP = Math.min.apply(0, g.map(function (x) { return x.price; }));
+      var minP = minPrice(g);
       var floors = compressFloors(g.map(function (x) { return x.floor; }));
       var promo = g.map(function (x) { return x.promo; }).filter(Boolean)[0];
       var isPromo = g.some(function (x) { return x.status === 'promo'; });
@@ -572,7 +583,7 @@
     var baseRate = m.rate != null ? m.rate : 0.06;
     var years0 = m.years != null ? m.years : 30;
     var down0 = m.down != null ? m.down : 0.2;
-    var prices = d.flats.filter(function (f) { return !f.nodata; }).map(function (f) { return f.price; });
+    var prices = d.flats.map(function (f) { return +f.price; }).filter(function (p) { return isFinite(p) && p > 0; });
     var minP = Math.min.apply(0, prices), maxP = Math.max.apply(0, prices);
     if (!this.mort) this.mort = { cost: minP, down: Math.round(down0 * 100), years: years0 };
     var st = this.mort, banks = d.banks || null;
@@ -637,7 +648,7 @@
     this.openFlatId = null;
     var one = group[0], bld = this.buildingById(one.building);
     var sorted = group.slice().sort(function (a, b) { return a.floor - b.floor; });
-    var minP = Math.min.apply(0, group.map(function (x) { return x.price; }));
+    var minP = minPrice(group);
 
     var html = '<div class="shm__panel-head"><div>';
     html += '<h3 class="shm__panel-title">' + roomsLabel(one.rooms) + ' · ' + one.area + ' м²</h3>';
