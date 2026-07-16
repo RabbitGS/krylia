@@ -150,8 +150,8 @@ sort($planOptions, SORT_NATURAL);
           <?php endforeach; ?>
         </select>
       </label>
-      <label>…или загрузить файл планировки (webp/jpg/png)
-        <input type="file" id="shp-meta-planfile" class="shp-meta-inp" accept=".webp,.jpg,.jpeg,.png">
+      <label>Загрузить новую планировку (webp/jpg/png)
+        <input type="file" id="shp-meta-planfile" class="shp-meta-inp shp-meta-file" accept=".webp,.jpg,.jpeg,.png">
       </label>
     </div>
     <button id="shp-meta-save" class="shp-price-save" style="width:100%">Сохранить данные</button>

@@ -109,8 +109,11 @@ table.sh-grid td{padding:0;border:none;background:transparent}
 .shp-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .shp-meta-grid label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:600}
 .shp-meta-grid label:last-child{grid-column:1/-1}
-.shp-meta-inp{padding:10px 12px;border:2px solid var(--line);border-radius:10px;font-size:14.5px;font-weight:600;color:var(--ink);background:#fff;width:100%;min-width:0}
+.shp-meta-inp{padding:10px 12px;border:2px solid var(--line);border-radius:10px;font-size:14.5px;font-weight:600;color:var(--ink);background:#fff;width:100%;min-width:0;box-sizing:border-box}
 .shp-meta-inp:focus{outline:none;border-color:var(--navy)}
+.shp-meta-file{padding:7px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.shp-meta-file::file-selector-button{padding:8px 14px;border:none;border-radius:8px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:600;margin-right:10px;cursor:pointer}
+.shp-meta-file::file-selector-button:hover{filter:brightness(1.12)}
 .shp-history-block{padding:18px 22px}
 .shp-history{display:flex;flex-direction:column;gap:8px}
 .shp-hist{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:8px 12px;background:#fafbfc;border:1px solid var(--line);border-radius:8px}

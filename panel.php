@@ -41,7 +41,7 @@ if ($todayLeads > 0) $badge['leads'] = (string)$todayLeads;
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Крылья · админ-панель</title>
-<link rel="stylesheet" href="panel/panel.css">
+<link rel="stylesheet" href="panel/panel.css?v=<?=@filemtime(__DIR__ . '/panel/panel.css') ?: 1?>">
 </head>
 <body>
 <header class="top">
