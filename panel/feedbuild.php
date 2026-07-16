@@ -193,6 +193,7 @@ function build_catalog($raw, $meta = null) {
       'free'     => ['label' => 'Свободна', 'color' => '#3f9d58'],
       'reserved' => ['label' => 'Бронь',    'color' => '#e0a312'],
       'promo'    => ['label' => 'Акция',    'color' => '#8e44ad'],
+      'tech'     => ['label' => 'Тех. бронь', 'color' => '#6b7a8c'],   // внутренний: на сайт уходит как «продана»
       'sold'     => ['label' => 'Продана',  'color' => '#c0392b'],
     ],
     'layout' => $layoutModes,

@@ -8,10 +8,12 @@ $statuses = $catalog['statuses'] ?? [
   'free'     => ['label' => 'Свободна', 'color' => '#3f9d58'],
   'reserved' => ['label' => 'Бронь',    'color' => '#e0a312'],
   'promo'    => ['label' => 'Акция',    'color' => '#8e44ad'],
+  'tech'     => ['label' => 'Тех. бронь', 'color' => '#6b7a8c'],
   'sold'     => ['label' => 'Продана',  'color' => '#c0392b'],
 ];
-$meta = @require __DIR__ . '/export_meta.php';
-$plansBase = is_array($meta) ? rtrim($meta['plans_base'] ?? '', '/') : '';
+// планировки показываем со СВОЕГО хостинга (/flats/plans/) — туда же смотрит витрина
+// и туда же загружаются новые файлы. plans_base (GitHub Pages) остаётся только в экспортных фидах.
+$plansBase = '/flats';
 
 $bnames = [];
 foreach (($catalog['genplan']['buildings'] ?? []) as $b) $bnames[$b['id']] = $b['name'] ?? $b['id'];
@@ -41,8 +43,13 @@ foreach ($flats as $f) {
   ];
 }
 
-// варианты планировок для редактора данных (уникальные пути из каталога)
+// варианты планировок для редактора данных: все файлы из flats/plans/ + пути из каталога
 $planOptions = [];
+foreach (glob(panel_docroot() . '/flats/plans/*.{webp,jpg,jpeg,png}', GLOB_BRACE) ?: [] as $pf) {
+  $bn = basename($pf);
+  if (strpos($bn, 'floor_') === 0) continue;   // поэтажные планы — не планировки квартир
+  $planOptions['plans/' . $bn] = 1;
+}
 foreach ($flats as $f) if (!empty($f['plan'])) $planOptions[(string)$f['plan']] = 1;
 $planOptions = array_keys($planOptions);
 sort($planOptions, SORT_NATURAL);
@@ -143,6 +150,9 @@ sort($planOptions, SORT_NATURAL);
           <?php endforeach; ?>
         </select>
       </label>
+      <label>…или загрузить файл планировки (webp/jpg/png)
+        <input type="file" id="shp-meta-planfile" class="shp-meta-inp" accept=".webp,.jpg,.jpeg,.png">
+      </label>
     </div>
     <button id="shp-meta-save" class="shp-price-save" style="width:100%">Сохранить данные</button>
     <div class="shp-price-note" id="shp-meta-note"></div>
@@ -158,7 +168,7 @@ sort($planOptions, SORT_NATURAL);
 <script>
 (function(){
   var STATUSES = <?=json_encode($statuses, JSON_UNESCAPED_UNICODE)?>;
-  var ORDER = <?=json_encode(array_values(array_intersect(['free','reserved','promo','sold'], array_keys($statuses))) ?: array_keys($statuses))?>;
+  var ORDER = <?=json_encode(array_values(array_intersect(['free','reserved','promo','tech','sold'], array_keys($statuses))) ?: array_keys($statuses))?>;
   var FLATS = <?=json_encode($flatsJs, JSON_UNESCAPED_UNICODE)?>;
   var PLANS_BASE = <?=json_encode($plansBase)?>;
   var curId = null;
@@ -358,6 +368,27 @@ sort($planOptions, SORT_NATURAL);
     document.getElementById('shp-price-save').addEventListener('click', function(){ if(curId) setPrice(curId); });
   })();
   document.getElementById('shp-meta-save').addEventListener('click', function(){ if(curId) saveMeta(curId); });
+  // загрузка файла планировки: сразу шлём на сервер, путь подставляем в select
+  document.getElementById('shp-meta-planfile').addEventListener('change', function(){
+    var inp = this, file = inp.files && inp.files[0];
+    if(!file) return;
+    if(file.size > 8*1024*1024){ say('Файл больше 8 МБ', true); inp.value=''; return; }
+    var fd = new FormData(); fd.append('plan', file);
+    say('Загружаю планировку…');
+    fetch('panel/api.php?action=upload_plan', {method:'POST', body: fd})
+      .then(function(r){return r.json();}).then(function(res){
+        if(!res.ok){ say('Не загрузилось: '+(res.error||'ошибка'), true); inp.value=''; return; }
+        var sel = document.getElementById('shp-meta-plan');
+        // добавить option, если такого пути ещё нет, и выбрать его
+        if(!Array.prototype.some.call(sel.options, function(o){ return o.value===res.plan; })){
+          var o = document.createElement('option'); o.value = res.plan;
+          o.textContent = res.plan.replace(/^plans\//,'');
+          sel.appendChild(o);
+        }
+        sel.value = res.plan;
+        say('Планировка загружена — нажмите «Сохранить данные»');
+      }).catch(function(){ say('Сеть недоступна', true); inp.value=''; });
+  });
   document.getElementById('shp-close').addEventListener('click', closePanel);
   overlay.addEventListener('click', closePanel);
   document.addEventListener('keydown', function(e){ if(e.key==='Escape') closePanel(); });

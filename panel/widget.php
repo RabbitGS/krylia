@@ -22,6 +22,9 @@ $include = ($_GET['include'] ?? 'all') === 'free' ? 'free' : 'all';
 
 $catalog = load_catalog();
 $flats = merged_flats($catalog);            // каталог + живые статусы
+// техническая бронь — внутренний статус панели: наружу (на сайт) отдаём как «продана»
+foreach ($flats as &$tf) if (($tf['status'] ?? '') === 'tech') $tf['status'] = 'sold';
+unset($tf);
 if ($include === 'free') {
   $flats = array_values(array_filter($flats, fn($f) => in_array(($f['status'] ?? 'free'), ['free', 'promo'], true)));
 }
@@ -39,6 +42,7 @@ $out['flats'] = $flats;
 $out['_source'] = 'panel';
 $out['_generated'] = date('c');
 unset($out['_imported_from'], $out['_imported_at'], $out['catalog']);
+unset($out['statuses']['tech']);   // внутренний статус панели — витрине не нужен
 
 // CORS: витрина на другом (под)домене должна иметь право читать
 header('Access-Control-Allow-Origin: *');

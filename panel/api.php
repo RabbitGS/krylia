@@ -85,6 +85,38 @@ if ($action === 'set_price') {
   exit;
 }
 
+if ($action === 'upload_plan') {
+  // загрузка картинки планировки → flats/plans/ (там же живут планировки витрины)
+  if (empty($_FILES['plan']['tmp_name']) || !is_uploaded_file($_FILES['plan']['tmp_name'])) {
+    http_response_code(400); echo json_encode(['ok' => false, 'error' => 'файл не получен']); exit;
+  }
+  $pf = $_FILES['plan'];
+  if ($pf['size'] > 8 * 1024 * 1024) { http_response_code(400); echo json_encode(['ok' => false, 'error' => 'больше 8 МБ']); exit; }
+  $ext = strtolower(pathinfo($pf['name'], PATHINFO_EXTENSION));
+  if ($ext === 'jpeg') $ext = 'jpg';
+  if (!in_array($ext, ['webp', 'jpg', 'png'], true)) {
+    http_response_code(400); echo json_encode(['ok' => false, 'error' => 'только webp/jpg/png']); exit;
+  }
+  $info = @getimagesize($pf['tmp_name']);   // проверка, что это реально картинка
+  if (!$info || !in_array($info[2], [IMAGETYPE_WEBP, IMAGETYPE_JPEG, IMAGETYPE_PNG], true)) {
+    http_response_code(400); echo json_encode(['ok' => false, 'error' => 'файл не похож на картинку']); exit;
+  }
+  // безопасное имя: латиница/цифры/точка/дефис/подчёркивание + защита от коллизий
+  $base = preg_replace('~[^A-Za-z0-9._\-]~', '_', pathinfo($pf['name'], PATHINFO_FILENAME));
+  $base = trim($base, '._-') !== '' ? trim($base, '._-') : 'plan';
+  $dir = panel_docroot() . '/flats/plans';
+  if (!is_dir($dir)) { http_response_code(500); echo json_encode(['ok' => false, 'error' => 'нет папки flats/plans']); exit; }
+  $name = $base . '.' . $ext;
+  if (is_file("$dir/$name")) $name = $base . '_' . date('Ymd-His') . '.' . $ext;
+  if (!move_uploaded_file($pf['tmp_name'], "$dir/$name")) {
+    http_response_code(500); echo json_encode(['ok' => false, 'error' => 'не удалось сохранить']); exit;
+  }
+  @chmod("$dir/$name", 0644);
+  log_event('plan_upload', ['file' => 'plans/' . $name, 'by' => (string)$user]);
+  echo json_encode(['ok' => true, 'plan' => 'plans/' . $name], JSON_UNESCAPED_UNICODE);
+  exit;
+}
+
 if ($action === 'set_meta') {
   $raw = file_get_contents('php://input');
   $in = json_decode($raw, true);
