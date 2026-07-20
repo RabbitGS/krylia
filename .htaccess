@@ -1,0 +1,20 @@
+# Кэширование сайта Крылья.
+# HTML (index.html, /privacy, /consent) всегда перепроверяется на свежесть:
+# браузер берёт из кэша ТОЛЬКО после подтверждения сервера (ETag/Last-Modified).
+# => после правок сайта НИЧЕГО сбрасывать руками не нужно.
+# Картинки кэширует nginx на 7 дней (его .htaccess не переопределяет) — при замене
+# картинки обновляем ссылку ?v=N в HTML, применяется сразу, т.к. HTML свежий.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# Проброс заголовка Authorization в PHP (Apache+CGI его теряет) —
+# иначе Basic-auth панели (panel.php в корне) не работает.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
