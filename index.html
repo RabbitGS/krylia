@@ -695,6 +695,8 @@ footer{background:var(--navy-deep);color:#fff;padding:70px 0 34px}
     h+='</div>';
     panel.innerHTML=h;
     panel.querySelectorAll('.qz-opt').forEach(b=>b.onclick=()=>{
+      /* микро-цель: первый ответ квиза = начал подбор (осознанное действие, боты не проходят) */
+      if(!window.__qzStep1){window.__qzStep1=true;try{if(window.ym)ym(103897523,'reachGoal','quiz_step1');}catch(e){}}
       A[s.key]=s.opts[b.dataset.x];
       panel.querySelectorAll('.qz-opt').forEach(e=>e.classList.remove('sel'));
       b.classList.add('sel');
@@ -1311,6 +1313,10 @@ document.querySelectorAll('form input').forEach(inp=>inp.addEventListener('focus
   if(formOpened)return; formOpened=true;
   try{if(window.ym)ym(103897523,'reachGoal','form_open');}catch(e){}
 }));
+
+/* микро-цель вовлечённости: 60 сек на странице — отсекает мусорный трафик РСЯ
+   (средний рекламный визит был ~37 сек), даёт автостратегии подпорку для обучения */
+setTimeout(function(){try{if(window.ym)ym(103897523,'reachGoal','engaged_60s');}catch(e){}},60000);
 
 /* атрибуция заявки: первое касание (utm/referrer) фиксируем в localStorage при заходе,
    ClientID Метрики держим в window.__cid — всё это уезжает с заявкой в lead.php/панель */
