@@ -163,7 +163,7 @@
 .shm__cell--empty { background: transparent !important; cursor: default;
   border: 1px dashed rgba(255,255,255,.09) !important; box-shadow: none; }
 .shm__cell--empty:hover { transform: none; box-shadow: none; }
-.shm__cell--sold { cursor: default; opacity: .4; }
+.shm__cell--sold { cursor: default; }
 .shm__cell--sold:hover { transform: none; box-shadow: none; }
 .shm__cell--nodata { cursor: default; opacity: .3;
   background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,.25) 4px, rgba(255,255,255,.25) 6px) !important; }
