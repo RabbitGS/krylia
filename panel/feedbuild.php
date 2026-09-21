@@ -25,6 +25,13 @@ const FEED_PLANS = [
   '10|3|90.38' => 'plans/p_90_p10.webp',
   '10|3|91.83' => 'plans/p_91_8_p10.webp',
 ];
+// зеркальные близнецы: "подъезд|комнаты|площадь" => [стояк => файл]. Нумерация в 8/9 подъездах
+// идёт справа налево, меньший стояк стоит правее; у него планировка отражена относительно FEED_PLANS.
+const FEED_PLANS_MIRROR = [
+  '8|1|45.38' => [2 => 'plans/p_45_3_p8_m.webp'],
+  '9|1|45.38' => [2 => 'plans/p_45_3_p9_m.webp'],
+  '9|2|64.86' => [1 => 'plans/p_64_8_p9_m.webp'],
+];
 
 // пины подъездов на генплане (xPct/yPct)
 const FEED_PIN = [
@@ -145,7 +152,7 @@ function build_catalog($raw, $meta = null) {
         'finishing' => 'под ключ',
       ];
       if (array_key_exists($key, FEED_PLANS)) {
-        if (FEED_PLANS[$key] !== '') $flat['plan'] = FEED_PLANS[$key];
+        if (FEED_PLANS[$key] !== '') $flat['plan'] = FEED_PLANS_MIRROR[$key][$flat['riser']] ?? FEED_PLANS[$key];
       } else {
         $missPlan[$key] = 1;
       }
