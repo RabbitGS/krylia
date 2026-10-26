@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /panel
+Disallow: /panel.php
+Disallow: /lead.php
+Disallow: /thankyou
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&ybaip&from
+
+Sitemap: https://krylia-tver.ru/sitemap.xml

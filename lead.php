@@ -152,6 +152,16 @@ if ($CAP_SECRET !== '') {
 
 lead_log('accepted', $data);
 
+// 26.10.2026: подозрение на бота — не блокируем, а метим тегом в amoCRM.
+// Почерк ботов 10.09–16.10 (20 шт. в lead_log): капча failed, без utm, компьютер (Windows/Mac),
+// пришёл не из поисковика. Живые с компьютера приходят с utm или из Яндекса/Google — их не задевает.
+$ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+$botSuspect = ($data['cap'] ?? '') === 'failed'
+  && $utm_source === ''
+  && preg_match('/Windows NT|Macintosh/', $ua)
+  && !preg_match('/Mobile|Android|iPhone|iPad/', $ua)
+  && !preg_match('/yandex\.|ya\.ru|google\.|bing\.|mail\.ru/i', $referrer);
+
 $base = "https://{$SUB}.amocrm.ru";
 $headers = ["Authorization: Bearer {$TOKEN}", "Content-Type: application/json"];
 
@@ -179,7 +189,9 @@ elseif ($source)  $leadName .= ' — ' . $source;
 $lead = [
   'name' => $leadName,
   '_embedded' => [
-    'tags' => [['name' => 'Сайт Крылья']],
+    'tags' => $botSuspect
+      ? [['name' => 'Сайт Крылья'], ['name' => 'Подозрение на бота']]
+      : [['name' => 'Сайт Крылья']],
     'contacts' => [[
       'name' => $name ?: 'Клиент с сайта',
       'custom_fields_values' => [
@@ -211,7 +223,8 @@ if ($leadId) {
     . ($page   ? "\nСтраница: {$page}"            : '')
     . ($referrer ? "\nReferrer: {$referrer}"      : '')
     . (($utm_source || $utm_medium || $utm_campaign) ? "\nUTM: {$utm_source}/{$utm_medium}/{$utm_campaign}" : '')
-    . ($cid    ? "\nClientID: {$cid}"             : '');
+    . ($cid    ? "\nClientID: {$cid}"             : '')
+    . ($botSuspect ? "\n⚠ Похоже на бота: капча не пройдена, компьютер, без рекламы и поиска" : '');
   amo_post("{$base}/api/v4/leads/{$leadId}/notes", $headers, [['note_type' => 'common', 'params' => ['text' => $note]]]);
 }
 

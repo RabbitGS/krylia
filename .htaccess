@@ -14,6 +14,18 @@
 # иначе Basic-auth панели (panel.php в корне) не работает.
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # 26.10.2026: один адрес сайта — https://krylia-tver.ru (без www), 301 одним прыжком.
+  # SSL снимает nginx хостинга, Apache видит схему только в X-Forwarded-Proto
+  # (так же сделано на group-gbi2.ru у того же хостинга).
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https [OR]
+  RewriteCond %{HTTP_HOST} ^www\. [NC]
+  RewriteRule ^ https://krylia-tver.ru%{REQUEST_URI} [L,R=301,NE]
+
+  # /privacy → /privacy/ сразу на https: штатный DirectorySlash Apache уводил на http://.
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^(.*[^/])$ https://krylia-tver.ru/$1/ [L,R=301]
+
   RewriteCond %{HTTP:Authorization} .
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 </IfModule>
